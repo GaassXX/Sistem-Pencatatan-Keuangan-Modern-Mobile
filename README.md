@@ -1,6 +1,6 @@
 # 📱 FinChat (Laporan Keuangan)
 
-**FinChat** adalah aplikasi pencatatan dan pengelolaan keuangan cerdas berbasis **Flutter** (Mobile) dan **FastAPI** (Backend REST API) yang dilengkapi dengan fitur **AI ChatBot** untuk mencatat transaksi secara otomatis menggunakan pesan percakapan natural.
+**FinChat** adalah aplikasi pencatatan dan pengelolaan keuangan cerdas berbasis **Flutter** (Mobile) dan **FastAPI** (Backend REST API) yang dilengkapi dengan fitur **ChatBot** untuk mencatat transaksi secara otomatis menggunakan pesan percakapan natural.
 
 ---
 
