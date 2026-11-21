@@ -134,7 +134,7 @@ class ApiService {
 5. **Hutang & Piutang:** Pemantauan tanggal jatuh tempo dan pencatatan cicilan pelunasan.
 6. **Target Tabungan (Savings):** Manajemen target dana impian beserta setoran deposit bertahap.
 7. **Batas Anggaran (Budgets):** Penetapan batas pengeluaran per kategori untuk mencegah pemborosan.
-8. **AI ChatBot Asisten:** Pengenalan bahasa natural untuk mencatat transaksi secara otomatis (contoh: *"Makan siang 25000"*).
+8. **ChatBot Asisten:** Pengenalan bahasa natural untuk mencatat transaksi secara otomatis (contoh: *"Makan siang 25000"*).
 9. **Ekspor Laporan:** Unduh laporan keuangan berkala dalam format dokumen.
 
 ---
