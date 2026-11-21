@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
 # ----------------- Base Response -----------------
@@ -48,14 +48,14 @@ class UserOut(BaseModel):
 # ----------------- Wallets -----------------
 class WalletCreate(BaseModel):
     name: str
-    type: str = "cash" # cash, bank, emoney, other
+    type: Literal["cash", "bank", "emoney", "other"] = "cash"
     initial_balance: Optional[float] = 0.0
     color: Optional[str] = "#10B981"
     icon: Optional[str] = "cash"
 
 class WalletUpdate(BaseModel):
     name: Optional[str] = None
-    type: Optional[str] = None
+    type: Optional[Literal["cash", "bank", "emoney", "other"]] = None
     initial_balance: Optional[float] = None
     color: Optional[str] = None
     icon: Optional[str] = None
@@ -64,6 +64,8 @@ class WalletTransferRequest(BaseModel):
     from_wallet_id: int
     to_wallet_id: int
     amount: float
+    admin_fee: Optional[float] = 0.0
+    allow_negative: Optional[bool] = False
     notes: Optional[str] = None
     date: Optional[date] = None
 

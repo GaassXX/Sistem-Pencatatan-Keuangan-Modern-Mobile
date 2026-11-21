@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.models import Saving, SavingDeposit, Expense, Wallet, User
+from app.models.models import Saving, SavingDeposit, Wallet, User
 from app.schemas.schemas import SavingCreate, SavingUpdate, SavingDepositCreate
 
 router = APIRouter(prefix="/api/savings", tags=["Savings"])
@@ -207,20 +207,14 @@ def add_saving_deposit(
     if new_curr >= float(saving.target_amount):
         saving.status = "completed"
 
-    # Potong saldo wallet jika wallet_id diberikan
+    # Validasi wallet_id jika diberikan (tanpa membuat Expense — setoran tidak
+    # mengurangi saldo kas, hanya mencatat progres tabungan per BRD FR-105)
     if req.wallet_id:
-        wallet = db.query(Wallet).filter(Wallet.id == req.wallet_id, Wallet.user_id == current_user.id).first()
-        if wallet:
-            exp = Expense(
-                user_id=current_user.id,
-                wallet_id=wallet.id,
-                amount=req.amount,
-                source=wallet.type,
-                description=f"Setoran tabungan: {saving.name}",
-                date=dep_date,
-                status="approved"
-            )
-            db.add(exp)
+        wallet = db.query(Wallet).filter(
+            Wallet.id == req.wallet_id, Wallet.user_id == current_user.id
+        ).first()
+        if not wallet:
+            raise HTTPException(status_code=404, detail="Dompet tidak ditemukan")
 
     db.commit()
 

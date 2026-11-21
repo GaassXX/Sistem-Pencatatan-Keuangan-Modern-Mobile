@@ -113,18 +113,31 @@ def create_transaction(
     if req.amount <= 0:
         raise HTTPException(status_code=422, detail="Jumlah transaksi harus lebih dari 0")
     
-    # Cek wallet
+    # Validasi kepemilikan wallet (Cegah IDOR)
     wallet = None
     if req.wallet_id:
         wallet = db.query(Wallet).filter(Wallet.id == req.wallet_id, Wallet.user_id == current_user.id).first()
-    if not wallet:
+        if not wallet:
+            raise HTTPException(status_code=404, detail="Dompet tidak ditemukan atau bukan milik Anda")
+    else:
         wallet = db.query(Wallet).filter(Wallet.user_id == current_user.id, Wallet.is_archived == False).first()
         if not wallet:
-            # Buat dompet cash jika belum ada
-            wallet = Wallet(user_id=current_user.id, name="Uang Tunai", type="cash", initial_balance=0.0)
+            wallet = Wallet(user_id=current_user.id, name="Uang Tunai (Cash)", type="cash", initial_balance=0.0)
             db.add(wallet)
             db.commit()
             db.refresh(wallet)
+
+    # Validasi kategori
+    if req.category_id:
+        category = db.query(Category).filter(Category.id == req.category_id).first()
+        if not category:
+            raise HTTPException(status_code=404, detail="Kategori tidak ditemukan")
+
+    # Validasi kepemilikan debt
+    if req.debt_id:
+        debt = db.query(Debt).filter(Debt.id == req.debt_id, Debt.user_id == current_user.id).first()
+        if not debt:
+            raise HTTPException(status_code=404, detail="Data hutang/piutang tidak ditemukan atau bukan milik Anda")
 
     tx_status = "pending" if current_user.parent_id else "approved"
     tx_date = req.date or date.today()
@@ -145,7 +158,7 @@ def create_transaction(
         db.commit()
         db.refresh(item)
         raw_id = f"inc-{item.id}"
-    else:
+    elif req.type == "expense":
         item = Expense(
             user_id=current_user.id,
             category_id=req.category_id,
@@ -161,6 +174,8 @@ def create_transaction(
         db.commit()
         db.refresh(item)
         raw_id = f"exp-{item.id}"
+    else:
+        raise HTTPException(status_code=422, detail="Tipe transaksi harus 'income' atau 'expense'")
 
     return {
         "success": True,
@@ -243,14 +258,24 @@ def update_transaction(
     if not item:
         raise HTTPException(status_code=404, detail="Transaksi tidak ditemukan")
     
+    if req.wallet_id is not None:
+        wallet = db.query(Wallet).filter(Wallet.id == req.wallet_id, Wallet.user_id == current_user.id).first()
+        if not wallet:
+            raise HTTPException(status_code=404, detail="Dompet tidak ditemukan atau bukan milik Anda")
+        item.wallet_id = req.wallet_id
+
+    if req.category_id is not None:
+        category = db.query(Category).filter(Category.id == req.category_id).first()
+        if not category:
+            raise HTTPException(status_code=404, detail="Kategori tidak ditemukan")
+        item.category_id = req.category_id
+
     if req.amount is not None:
+        if req.amount <= 0:
+            raise HTTPException(status_code=422, detail="Jumlah transaksi harus lebih dari 0")
         item.amount = req.amount
     if req.description is not None:
         item.description = req.description
-    if req.category_id is not None:
-        item.category_id = req.category_id
-    if req.wallet_id is not None:
-        item.wallet_id = req.wallet_id
     if req.date is not None:
         item.date = req.date
     if req.source is not None:

@@ -231,17 +231,29 @@ def pay_debt_installment(
         )
         db.add(rec)
 
-    db.commit()
+    # Cek apakah lunas sebelum commit pertama (dalam 1 transaksi DB)
+    paid_so_far = 0.0
+    if debt.type == "debt":
+        from sqlalchemy import func as sqlfunc
+        paid_so_far = db.query(sqlfunc.sum(Expense.amount)).filter(
+            Expense.debt_id == debt.id, Expense.status == "approved"
+        ).scalar() or 0.0
+    else:
+        from sqlalchemy import func as sqlfunc
+        paid_so_far = db.query(sqlfunc.sum(Income.amount)).filter(
+            Income.debt_id == debt.id, Income.status == "approved"
+        ).scalar() or 0.0
 
-    # Cek apakah lunas
-    formatted = format_debt(db, debt)
-    if formatted["remaining_amount"] <= 0:
+    new_paid = float(paid_so_far) + req.amount
+    if new_paid >= float(debt.amount or 0):
         debt.status = "paid"
-        db.commit()
-        formatted["status"] = "paid"
+
+    # Satu commit untuk semua perubahan (atomic)
+    db.commit()
+    db.refresh(debt)
 
     return {
         "success": True,
         "message": "Pembayaran berhasil dicatat",
-        "data": formatted
+        "data": format_debt(db, debt)
     }

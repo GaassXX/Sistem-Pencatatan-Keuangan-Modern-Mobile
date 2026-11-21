@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     )
     SECRET_KEY: str = os.getenv(
         "SECRET_KEY", 
-        "dompetkuu-secret-key-2026-mobile-course"
+        "finchat-secret-key-change-me-in-production-2026"
     )
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "43200"))
