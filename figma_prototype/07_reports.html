@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=390, initial-scale=1.0">
+  <title>07_reports.html</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .mobile-frame {
+      width: 390px;
+      height: 844px;
+      background: #F8FAFC;
+      border-radius: 40px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .status-bar {
+      height: 44px;
+      padding: 0 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0F172A;
+      flex-shrink: 0;
+    }
+    .status-time { font-weight: 700; }
+    .status-icons { display: flex; gap: 6px; font-size: 12px; }
+    .screen-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .screen-body::-webkit-scrollbar { display: none; }
+    .bottom-nav-bar {
+      height: 60px;
+      background: #FFFFFF;
+      border-top: 1px solid #E2E8F0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-shrink: 0;
+      padding: 0 8px;
+    }
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #94A3B8;
+      font-size: 10.5px;
+      font-weight: 600;
+    }
+    .nav-tab.active { color: #4F46E5; }
+    .nav-tab.active svg { color: #4F46E5; }
+    .bottom-home-bar {
+      width: 140px;
+      height: 5px;
+      background: #0F172A;
+      border-radius: 10px;
+      margin: 4px auto 6px auto;
+      flex-shrink: 0;
+    }
+    </style>
+</head>
+<body>
+
+    <!-- 07_REPORTS_PAGE -->
+    <div class="mobile-frame" id="frame_07">
+      <div class="status-bar">
+        <span class="status-time">09:41</span>
+        <div class="status-icons"><span>5G</span><span>100%</span></div>
+      </div>
+
+      <div style="padding: 6px 16px 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 34px; height: 34px; background: rgba(91,77,255,0.12); border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #5B4DFF;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></div>
+          <div>
+            <div style="font-size: 17px; font-weight: 800; color: #0F172A;">Laporan Keuangan</div>
+            <div style="font-size: 11px; color: #64748B;">Ikhtisar performa personal</div>
+          </div>
+        </div>
+        <div style="background: #5B4DFF; border-radius: 18px; padding: 6px 12px; display: flex; align-items: center; gap: 4px; color: #FFF; font-size: 11px; font-weight: 700;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> <span>Unduh</span>
+        </div>
+      </div>
+
+      <div class="screen-body" style="padding: 0 16px;">
+        <!-- Date Bar -->
+        <div style="background: #FFF; border-radius: 12px; border: 1px solid #E2E8F0; padding: 10px 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+          <span style="color: #5B4DFF;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
+          <span style="font-size: 13px; font-weight: 700; color: #0F172A;">November 2026</span>
+          <span style="margin-left: auto; color: #94A3B8; font-size: 11px;">▼</span>
+        </div>
+
+        <!-- Filter Segment -->
+        <div style="background: #E2E8F0; border-radius: 10px; padding: 3px; display: flex; margin-bottom: 10px;">
+          <div style="flex: 1; text-align: center; padding: 5px; font-size: 11.5px; font-weight: 700; background: #FFF; border-radius: 8px; color: #5B4DFF;">Bulan Ini</div>
+          <div style="flex: 1; text-align: center; padding: 5px; font-size: 11.5px; font-weight: 600; color: #64748B;">3 Bulan</div>
+          <div style="flex: 1; text-align: center; padding: 5px; font-size: 11.5px; font-weight: 600; color: #64748B;">Tahun Ini</div>
+        </div>
+
+        <!-- Surplus Card -->
+        <div style="background: #FFF; border-radius: 14px; border: 1px solid #E2E8F0; padding: 12px 14px; margin-bottom: 10px;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #64748B; margin-bottom: 2px;">SURPLUS BULAN INI</div>
+          <div style="font-size: 20px; font-weight: 800; color: #10B981; margin-bottom: 8px;">+Rp 12.850.000</div>
+          <div style="display: flex; gap: 8px; padding-top: 8px; border-top: 1px solid #F1F5F9; font-size: 10.5px;">
+            <div style="flex: 1;"><span style="color:#64748B;">Masuk:</span> <strong>Rp 18.500k</strong></div>
+            <div style="flex: 1;"><span style="color:#64748B;">Keluar:</span> <strong>Rp 5.650k</strong></div>
+            <div style="flex: 1;"><span style="color:#64748B;">Rasio:</span> <strong style="color:#10B981;">69%</strong></div>
+          </div>
+        </div>
+
+        <!-- Donut Chart -->
+        <div style="background: #FFF; border-radius: 16px; border: 1px solid #E2E8F0; padding: 14px; text-align: center;">
+          <div style="font-size: 11.5px; font-weight: 700; color: #64748B;">KOMPOSISI PENGELUARAN</div>
+          <div style="font-size: 19px; font-weight: 800; color: #0F172A; margin: 4px 0 10px 0;">Rp 5.650.000</div>
+
+          <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+            <svg width="120" height="120" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#F1F5F9" stroke-width="14"></circle>
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#5B4DFF" stroke-width="14" stroke-dasharray="105.5 251.2" stroke-dashoffset="0"></circle>
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#F59E0B" stroke-width="14" stroke-dasharray="60.3 251.2" stroke-dashoffset="-105.5"></circle>
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#10B981" stroke-width="14" stroke-dasharray="50.2 251.2" stroke-dashoffset="-165.8"></circle>
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#EF4444" stroke-width="14" stroke-dasharray="35.2 251.2" stroke-dashoffset="-216"></circle>
+            </svg>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; text-align: left; font-size: 11px;">
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 8px; height: 8px; background: #5B4DFF; border-radius: 2px;"></span><span>Makanan (42%)</span></div>
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 8px; height: 8px; background: #F59E0B; border-radius: 2px;"></span><span>Belanja (24%)</span></div>
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 8px; height: 8px; background: #10B981; border-radius: 2px;"></span><span>Transport (20%)</span></div>
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 8px; height: 8px; background: #EF4444; border-radius: 2px;"></span><span>Tagihan (14%)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav-bar">
+        <div class="nav-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Beranda</span></div>
+        <div class="nav-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"></path><line x1="8" y1="8" x2="16" y2="8"></line><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="12" y2="16"></line></svg><span>Transaksi</span></div>
+        <div class="nav-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg><span>Utang</span></div>
+        <div class="nav-tab active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>Laporan</span></div>
+      </div>
+      <div class="bottom-home-bar"></div>
+    </div>
+
+</body>
+</html>

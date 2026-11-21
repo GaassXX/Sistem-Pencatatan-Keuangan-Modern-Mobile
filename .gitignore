@@ -1,0 +1,73 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.pyo
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# Python & FastAPI Backend
+**/__pycache__/
+*.py[cod]
+*$py.class
+venv/
+backend/venv/
+ENV/
+env/
+.venv/
+backend/.venv/
+
+# Environment Variables & Secrets (SANGAT PENTING: JANGAN DI-PUSH)
+.env
+backend/.env
+*.env
+!*.env.example
+!backend/.env.example
+
+# Local Databases (Data lokal user)
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+
+# Uploads & Media (Foto profil/avatar upload lokal)
+backend/uploads/
+uploads/
+
+# IntelliJ / Android Studio / IDE
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+
+# Flutter / Dart / Pub
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+build/
+
+# Android Local & Secrets
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/key.properties
+/android/local.properties
+/android/.gradle/
+.gradle/
+
+# Symbolication & Obfuscation
+app.*.symbols
+app.*.map.json

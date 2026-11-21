@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinChat - Interactive Prototype Simulator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #5B4DFF;
+      --primary-brand: #4F46E5;
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --text-primary: #0F172A;
+      --text-secondary: #64748B;
+      --border: #E2E8F0;
+      --border-light: #F1F5F9;
+      --income: #10B981;
+      --income-light: #D1FAE5;
+      --expense: #EF4444;
+      --expense-light: #FEE2E2;
+      --warning: #F59E0B;
+      --warning-light: #FEF3C7;
+      --balance-start: #1E1B4B;
+      --balance-end: #312E81;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      background: #0B0F19;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .switcher-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 24px;
+      background: #1E293B;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .switch-pill {
+      background: transparent;
+      border: none;
+      color: #94A3B8;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .switch-pill:hover {
+      color: #FFF;
+      background: rgba(255,255,255,0.06);
+    }
+    .switch-pill.active {
+      background: #5B4DFF;
+      color: #FFF;
+      box-shadow: 0 4px 12px rgba(91,77,255,0.4);
+    }
+    .stage-container {
+      position: relative;
+    }
+    .screen-slide {
+      display: none;
+    }
+    .screen-slide.active {
+      display: block;
+      animation: zoomIn 0.2s ease-out;
+    }
+    @keyframes zoomIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .mobile-screen {
+      width: 390px;
+      height: 844px;
+      background: var(--bg);
+      border-radius: 46px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px -15px rgba(0,0,0,0.7), 0 0 0 8px #1E293B;
+    }
+    .status-bar {
+      height: 44px;
+      padding: 0 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex-shrink: 0;
+    }
+    .status-time { font-weight: 700; }
+    .status-icons { display: flex; gap: 6px; }
+    .content-body {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      padding: 0 20px 20px 20px;
+    }
+    .content-body::-webkit-scrollbar { display: none; }
+    .home-indicator-bar {
+      width: 140px;
+      height: 5px;
+      background: #0F172A;
+      border-radius: 10px;
+      margin: 6px auto 8px auto;
+      flex-shrink: 0;
+    }
+    .flutter-bottom-nav {
+      height: 64px;
+      background: #FFFFFF;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-shrink: 0;
+      padding: 0 8px;
+    }
+    .bottom-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #94A3B8;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .bottom-tab.active { color: #4F46E5; }
+    .bottom-tab.active svg { color: #4F46E5; }
+  </style>
+</head>
+<body>
+  <div style="text-align: center; color: #FFF; margin-bottom: 16px;">
+    <h1 style="font-size: 20px; font-weight: 800;">FinChat - Interactive Prototype Simulator (100% Desain Asli)</h1>
+    <p style="color: #94A3B8; font-size: 12.5px; margin-top: 4px;">Pilih tombol di bawah atau klik navigasi di dalam HP untuk menguji flow aplikasi!</p>
+  </div>
+
+  <div class="switcher-bar">
+  <button class="switch-pill" onclick="selectScreen(0)">01 Login</button>
+  <button class="switch-pill" onclick="selectScreen(1)">02 Register</button>
+  <button class="switch-pill active" onclick="selectScreen(2)">03 Beranda</button>
+  <button class="switch-pill" onclick="selectScreen(3)">04 Transaksi</button>
+  <button class="switch-pill" onclick="selectScreen(4)">05 + Catat</button>
+  <button class="switch-pill" onclick="selectScreen(5)">06 Utang</button>
+  <button class="switch-pill" onclick="selectScreen(6)">07 Laporan</button>
+  <button class="switch-pill" onclick="selectScreen(7)">08 FinChat AI</button>
+</div>
+
+  <div class="stage-container">
+  <div class="screen-slide">
+<div class="mobile-screen">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">09:41</span>
+      <div class="status-icons"><span>5G</span><span>100%</span></div>
+    </div>
+
+    <!-- Login Content -->
+    <div class="content-body" style="padding: 10px 24px 20px 24px; justify-content: center; align-items: center;">
+      <!-- Hero Branding FinChatBrandLogo -->
+      <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 20px;">
+        <div style="width: 68px; height: 68px; background: #5B4DFF; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: #FFF; box-shadow: 0 5px 14px rgba(91,77,255,0.35); margin-bottom: 12px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+        <div style="font-size: 26px; font-weight: 900; color: #0F172A; letter-spacing: -0.5px;">FinChat</div>
+        <div style="font-size: 13px; font-weight: 600; color: #64748B; letter-spacing: 0.2px; margin-top: 1px;">Laporan Keuangan</div>
+        <p style="font-size: 12.5px; line-height: 1.45; color: #64748B; margin-top: 10px; max-width: 290px;">
+          Aplikasi cerdas untuk mencatat transaksi harian, mengontrol batas anggaran, dan mengelola komitmen utang-piutang.
+        </p>
+      </div>
+
+      <!-- Feature Highlight Pills -->
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 24px;">
+        <div style="background: #FFFFFF; border: 1.1px solid #E2E8F0; border-radius: 20px; padding: 7px 12px; display: flex; align-items: center; gap: 6px;">
+          <span style="color: #5B4DFF;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg></span>
+          <span style="font-size: 11.5px; font-weight: 600; color: #0F172A;">Kontrol Anggaran</span>
+        </div>
+        <div style="background: #FFFFFF; border: 1.1px solid #E2E8F0; border-radius: 20px; padding: 7px 12px; display: flex; align-items: center; gap: 6px;">
+          <span style="color: #5B4DFF;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"></path><line x1="8" y1="8" x2="16" y2="8"></line><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="12" y2="16"></line></svg></span>
+          <span style="font-size: 11.5px; font-weight: 600; color: #0F172A;">Catat Transaksi</span>
+        </div>
+        <div style="background: #FFFFFF; border: 1.1px solid #E2E8F0; border-radius: 20px; padding: 7px 12px; display: flex; align-items: center; gap: 6px;">
+          <span style="color: #5B4DFF;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg></span>
+          <span style="font-size: 11.5px; font-weight: 600; color: #0F172A;">Utang & Piutang</span>
+        </div>
+      </div>
+
+      <!-- Card Formulir Login (Container 22px padding, 24px radius) -->
+      <div style="width: 100%; background: #FFFFFF; border-radius: 24px; border: 1.2px solid #E2E8F0; padding: 22px; box-shadow: 0 6px 16px rgba(0,0,0,0.04);">
+        <div style="font-size: 18px; font-weight: 800; color: #0F172A;">Masuk ke Akun</div>
+        <div style="font-size: 12.5px; color: #64748B; margin-top: 4px; margin-bottom: 18px;">
+          Masukkan email dan password untuk melanjutkan.
+        </div>
+
+        <!-- Email Field -->
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 13.5px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 8px;">Email</label>
+          <div style="height: 52px; background: #FFFFFF; border: 1.2px solid #E2E8F0; border-radius: 16px; padding: 0 16px; display: flex; align-items: center; gap: 12px;">
+            <span style="color: #64748B;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></span>
+            <span style="font-size: 14.5px; color: #0F172A;">nama@email.com</span>
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div style="margin-bottom: 10px;">
+          <label style="font-size: 13.5px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 8px;">Password</label>
+          <div style="height: 52px; background: #FFFFFF; border: 1.2px solid #E2E8F0; border-radius: 16px; padding: 0 16px; display: flex; align-items: center; gap: 12px;">
+            <span style="color: #64748B;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>
+            <span style="font-size: 14px; color: #0F172A; letter-spacing: 2px;">••••••••••••</span>
+            <span style="margin-left: auto; color: #64748B;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+          </div>
+        </div>
+
+        <!-- Lupa Password -->
+        <div style="text-align: right; margin-bottom: 18px;">
+          <span style="font-size: 12.5px; font-weight: 600; color: #5B4DFF; cursor: pointer;">Lupa password?</span>
+        </div>
+
+        <!-- Tombol Masuk Sekarang -->
+        <div style="width: 100%; height: 54px; background: #5B4DFF; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 15.5px; font-weight: 800; letter-spacing: 0.3px; box-shadow: 0 4px 14px rgba(91,77,255,0.4); cursor: pointer;">
+          Masuk Sekarang
+        </div>
+      </div>
+
+      <!-- Footer: Belum Punya Akun -->
+      <div style="margin-top: 22px; text-align: center; font-size: 13.5px; color: #64748B;">
+        Belum memiliki akun? <strong style="color: #5B4DFF; font-weight: 800; cursor: pointer;">Daftar Akun Baru</strong>
+      </div>
+    </div>
+
+    <!-- Home Indicator -->
+    <div class="home-indicator-bar"></div>
+  </div>
+  </div>
+  <div class="screen-slide">
+<div class="mobile-screen">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">09:41</span>
+      <div class="status-right"><span>5G</span><span>100%</span></div>
+    </div>
+
+    <!-- Back Button -->
+    <div style="padding: 4px 20px 8px 20px;">
+      <div style="width: 38px; height: 38px; background: #F1F5F9; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #0F172A; cursor: pointer;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-body" style="padding: 0 24px 20px 24px;">
+      <!-- Header FinChatBrandLogo Horizontal -->
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+        <div style="width: 48px; height: 48px; background: #5B4DFF; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #FFF; box-shadow: 0 4px 12px rgba(91,77,255,0.35);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+        <div>
+          <div style="font-size: 22px; font-weight: 900; color: #0F172A; letter-spacing: -0.5px;">FinChat</div>
+          <div style="font-size: 12px; font-weight: 600; color: #64748B;">Laporan Keuangan</div>
+        </div>
+      </div>
+
+      <div style="font-size: 24px; font-weight: 900; color: #0F172A; letter-spacing: -0.4px;">Buat Akun Baru</div>
+      <div style="font-size: 13px; line-height: 1.45; color: #64748B; margin-top: 4px; margin-bottom: 20px;">
+        Daftar untuk mengontrol keuangan harian, batasan anggaran, dan tracking utang-piutang.
+      </div>
+
+      <!-- Card Formulir Pendaftaran -->
+      <div style="background: #FFFFFF; border-radius: 24px; border: 1.2px solid #E2E8F0; padding: 22px; box-shadow: 0 6px 16px rgba(0,0,0,0.04);">
+        <!-- Nama Lengkap -->
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 13.5px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 6px;">Nama Lengkap</label>
+          <div style="height: 50px; background: #FFFFFF; border: 1.2px solid #E2E8F0; border-radius: 16px; padding: 0 16px; display: flex; align-items: center; gap: 12px;">
+            <span style="color: #64748B;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>
+            <span style="font-size: 14px; color: #94A3B8;">Contoh: Rizqi Ramadhan</span>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 13.5px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 6px;">Email</label>
+          <div style="height: 50px; background: #FFFFFF; border: 1.2px solid #E2E8F0; border-radius: 16px; padding: 0 16px; display: flex; align-items: center; gap: 12px;">
+            <span style="color: #64748B;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></span>
+            <span style="font-size: 14px; color: #94A3B8;">nama@email.com</span>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 13.5px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 6px;">Password</label>
+          <div style="height: 50px; background: #FFFFFF; border: 1.2px solid #E2E8F0; border-radius: 16px; padding: 0 16px; display: flex; align-items: center; gap: 12px;">
+            <span style="color: #64748B;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>
+            <span style="font-size: 14px; color: #94A3B8;">Minimal 8 karakter</span>
+            <span style="margin-left: auto; color: #64748B;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+          </div>
+        </div>
+
+        <!-- Konfirmasi Password -->
+        <div style="margin-bottom: 18px;">
+          <label style="font-size: 13.5px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 6px;">Konfirmasi Password</label>
+          <div style="height: 50px; background: #FFFFFF; border: 1.2px solid #E2E8F0; border-radius: 16px; padding: 0 16px; display: flex; align-items: center; gap: 12px;">
+            <span style="color: #64748B;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><rect x="8" y="11" width="8" height="6" rx="1"></rect></svg></span>
+            <span style="font-size: 14px; color: #94A3B8;">Ulangi password di atas</span>
+            <span style="margin-left: auto; color: #64748B;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+          </div>
+        </div>
+
+        <!-- Tombol Daftar Sekarang -->
+        <div style="width: 100%; height: 54px; background: #5B4DFF; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 15.5px; font-weight: 800; box-shadow: 0 4px 14px rgba(91,77,255,0.4); cursor: pointer;">
+          Daftar Sekarang
+        </div>
+      </div>
+
+      <!-- Footer: Masuk -->
+      <div style="margin-top: 18px; text-align: center; font-size: 13.5px; color: #64748B;">
+        Sudah memiliki akun? <strong style="color: #5B4DFF; font-weight: 800; cursor: pointer;">Masuk Sekarang</strong>
+      </div>
+    </div>
+
+    <div class="home-indicator-bar"></div>
+  </div>
+  </div>
+  <div class="screen-slide active">
+<div class="mobile-screen">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">09:41</span>
+      <div class="status-icons"><span>5G</span><span>100%</span></div>
+    </div>
+
+    <!-- AppBar Exact -->
+    <div style="padding: 0 20px 12px 20px; display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 36px; height: 36px; background: #5B4DFF; border-radius: 11px; display: flex; align-items: center; justify-content: center; color: #FFF;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+        <div>
+          <div style="font-size: 16px; font-weight: 800; letter-spacing: -0.3px; color: #0F172A;">FinChat</div>
+          <div style="font-size: 11px; color: #64748B; font-weight: 500;">Selamat Datang, Rizqi</div>
+        </div>
+      </div>
+      <div style="width: 38px; height: 38px; background: #FFF; border: 1px solid #E2E8F0; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <span style="position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: #EF4444; border: 1.5px solid #FFF; border-radius: 50%;"></span>
+      </div>
+    </div>
+
+    <!-- Content Scrollable -->
+    <div class="content-body" style="padding-top: 6px;">
+      <!-- Greeting Header -->
+      <div style="margin-bottom: 18px;">
+        <div style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: #0F172A;">Halo, Rizqi Ramadhan 👋</div>
+        <div style="font-size: 13px; color: #64748B; margin-top: 3px;">Ringkasan keuangan pintar kamu hari ini</div>
+      </div>
+
+      <!-- BalanceCard (Dark Indigo -> Deep Purple Gradient) -->
+      <div style="background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%); border-radius: 24px; padding: 22px; color: #FFF; box-shadow: 0 10px 22px rgba(30,27,75,0.35); margin-bottom: 22px;">
+        <!-- Header: Label & Tombol Sembunyikan -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span style="font-size: 10.5px; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: 0.9px;">TOTAL SALDO</span>
+          <div style="background: rgba(255,255,255,0.12); border-radius: 16px; padding: 5px 10px; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <span style="color: rgba(255,255,255,0.7);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+            <span style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7);">Sembunyikan</span>
+          </div>
+        </div>
+
+        <!-- Nominal Saldo -->
+        <div style="font-size: 30px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px;">
+          Rp 12.850.000
+        </div>
+
+        <!-- Row 2 Boxes (Pemasukan & Pengeluaran) -->
+        <div style="display: flex; gap: 12px;">
+          <!-- Pemasukan Box -->
+          <div style="flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 10.5px; color: rgba(255,255,255,0.6); font-weight: 500;">Pemasukan</div>
+              <div style="font-size: 13.5px; font-weight: 700; color: #10B981; margin-top: 3px;">+Rp 18.500.000</div>
+            </div>
+            <div style="width: 26px; height: 26px; background: rgba(16,185,129,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #10B981;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+            </div>
+          </div>
+          <!-- Pengeluaran Box -->
+          <div style="flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 10.5px; color: rgba(255,255,255,0.6); font-weight: 500;">Pengeluaran</div>
+              <div style="font-size: 13.5px; font-weight: 700; color: #FCA5A5; margin-top: 3px;">-Rp 5.650.000</div>
+            </div>
+            <div style="width: 26px; height: 26px; background: rgba(239,68,68,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FCA5A5;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 QuickAction Buttons (Catat Baru, FinChat, Utang, Tabungan) -->
+      <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+        <div style="flex: 1; background: #EDE9FE; border-radius: 16px; padding: 14px 6px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="color: #6366F1;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></div>
+          <span style="font-size: 11px; font-weight: 700; color: #0F172A; line-height: 1.2;">Catat<br>Baru</span>
+        </div>
+        <div style="flex: 1; background: #E0E7FF; border-radius: 16px; padding: 14px 6px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="color: #4F46E5;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg></div>
+          <span style="font-size: 11px; font-weight: 700; color: #0F172A; line-height: 1.2;">FinChat<br>AI</span>
+        </div>
+        <div style="flex: 1; background: #FFEDD5; border-radius: 16px; padding: 14px 6px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="color: #F97316;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg></div>
+          <span style="font-size: 11px; font-weight: 700; color: #0F172A; line-height: 1.2;">Utang<br>Piutang</span>
+        </div>
+        <div style="flex: 1; background: #D1FAE5; border-radius: 16px; padding: 14px 6px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="color: #10B981;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2.5 1-4.5-.5-6-1-6"></path><path d="M2 9v1c0 1.1.9 2 2 2h1"></path><circle cx="14" cy="9" r="1"></circle></svg></div>
+          <span style="font-size: 11px; font-weight: 700; color: #0F172A; line-height: 1.2;">Tabungan<br>Impian</span>
+        </div>
+      </div>
+
+      <!-- ANGGARAN BULAN INI Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.7px; color: #0F172A;">ANGGARAN BULAN INI</span>
+        <div style="display: flex; align-items: center; gap: 2px; color: #4F46E5; font-size: 12px; font-weight: 700; cursor: pointer;">
+          <span>Lihat Semua</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- BudgetCard -->
+      <div style="background: #FFFFFF; border-radius: 16px; border: 1px solid #E2E8F0; padding: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-bottom: 22px;">
+        <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px;">
+          <div style="width: 38px; height: 38px; background: rgba(245,158,11,0.12); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #F59E0B;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 14px; font-weight: 700; color: #0F172A;">Makanan & Minuman</div>
+            <div style="font-size: 11.5px; font-weight: 500; color: #64748B; margin-top: 2px;">Sisa: Rp 850.000 dari Rp 3.000.000</div>
+          </div>
+          <div style="background: #D1FAE5; border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 700; color: #10B981;">
+            • 72% (Aman)
+          </div>
+        </div>
+        <div style="height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden; margin-bottom: 6px;">
+          <div style="width: 72%; height: 100%; background: #10B981; border-radius: 4px;"></div>
+        </div>
+        <div style="font-size: 11.5px; font-weight: 600; color: #10B981;">
+          Kondisi Aman (14 hari tersisa)
+        </div>
+      </div>
+
+      <!-- PENGELUARAN TERBANYAK Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.7px; color: #0F172A;">PENGELUARAN TERBANYAK</span>
+      </div>
+
+      <!-- CategorySpendingCard -->
+      <div style="background: #FFFFFF; border-radius: 18px; border: 1px solid #E2E8F0; padding: 16px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <span style="font-size: 13.5px; font-weight: 700; color: #0F172A;">Pengeluaran Per Kategori</span>
+          <div style="background: #F1F5F9; border-radius: 8px; padding: 4px 8px; font-size: 10.5px; font-weight: 600; color: #64748B;">November 2026</div>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 4px;">
+              <span>Makanan & Minuman</span>
+              <span>Rp 2.150.000 (38%)</span>
+            </div>
+            <div style="height: 6px; background: #F1F5F9; border-radius: 3px; overflow: hidden;">
+              <div style="width: 38%; height: 100%; background: #5B4DFF;"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 4px;">
+              <span>Belanja Bulanan</span>
+              <span>Rp 1.350.000 (24%)</span>
+            </div>
+            <div style="height: 6px; background: #F1F5F9; border-radius: 3px; overflow: hidden;">
+              <div style="width: 24%; height: 100%; background: #F59E0B;"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 4px;">
+              <span>Transportasi</span>
+              <span>Rp 1.150.000 (20%)</span>
+            </div>
+            <div style="height: 6px; background: #F1F5F9; border-radius: 3px; overflow: hidden;">
+              <div style="width: 20%; height: 100%; background: #10B981;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Action Button FinChat AI -->
+    <div style="position: absolute; bottom: 82px; right: 20px; height: 48px; background: #4F46E5; border-radius: 24px; padding: 0 18px; display: flex; align-items: center; gap: 8px; color: #FFF; box-shadow: 0 6px 14px rgba(79,70,229,0.35); cursor: pointer; z-index: 30;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+      <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.3px;">FinChat</span>
+      <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%;"></span>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="flutter-bottom-nav">
+      <div class="bottom-tab active"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Beranda</span></div>
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"></path><line x1="8" y1="8" x2="16" y2="8"></line><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="12" y2="16"></line></svg><span>Transaksi</span></div>
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg><span>Utang</span></div>
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>Laporan</span></div>
+    </div>
+
+    <div class="home-indicator-bar"></div>
+  </div>
+  </div>
+  <div class="screen-slide">
+<div class="mobile-screen">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">09:41</span>
+      <div class="status-icons"><span>5G</span><span>100%</span></div>
+    </div>
+
+    <!-- Header Section -->
+    <div style="padding: 10px 20px 10px 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+        <div>
+          <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #0F172A;">Riwayat Transaksi</div>
+          <div style="background: #4F46E5; color: #FFF; border-radius: 20px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; margin-top: 5px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>November 2026</span>
+          </div>
+        </div>
+        <div style="background: #4F46E5; color: #FFF; border-radius: 20px; padding: 7px 14px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(79,70,229,0.3); cursor: pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Catat</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="content-body" style="padding: 0 16px 20px 16px;">
+      <!-- CashFlowCard Exact -->
+      <div style="background: #FFFFFF; border-radius: 18px; border: 1px solid #E2E8F0; padding: 16px; margin-bottom: 12px; display: flex; gap: 14px;">
+        <div style="flex: 1;">
+          <div style="font-size: 11px; color: #64748B; font-weight: 600;">TOTAL PEMASUKAN</div>
+          <div style="font-size: 16px; font-weight: 800; color: #10B981; margin: 3px 0;">+Rp 18.500.000</div>
+          <div style="font-size: 10.5px; color: #94A3B8;">14 transaksi</div>
+        </div>
+        <div style="width: 1px; background: #E2E8F0;"></div>
+        <div style="flex: 1;">
+          <div style="font-size: 11px; color: #64748B; font-weight: 600;">TOTAL PENGELUARAN</div>
+          <div style="font-size: 16px; font-weight: 800; color: #EF4444; margin: 3px 0;">-Rp 5.650.000</div>
+          <div style="font-size: 10.5px; color: #94A3B8;">32 transaksi</div>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div style="height: 46px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 0 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+        <span style="color: #94A3B8;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+        <span style="font-size: 13px; color: #94A3B8;">Cari transaksi, catatan...</span>
+      </div>
+
+      <!-- Filter Chips Bar -->
+      <div style="display: flex; gap: 8px; overflow-x: auto; margin-bottom: 14px;">
+        <div style="background: #4F46E5; color: #FFF; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 700;">Semua</div>
+        <div style="background: #FFF; border: 1px solid #E2E8F0; color: #64748B; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600;">Pengeluaran</div>
+        <div style="background: #FFF; border: 1px solid #E2E8F0; color: #64748B; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600;">Pemasukan</div>
+        <div style="background: #FFF; border: 1px solid #E2E8F0; color: #64748B; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600;">Kategori ▼</div>
+      </div>
+
+      <!-- Transactions List by Date -->
+      <div style="font-size: 11.5px; font-weight: 700; color: #64748B; margin-bottom: 8px;">HARI INI - 02 NOV 2026</div>
+
+      <!-- Item 1 -->
+      <div style="background: #FFF; border: 1.2px solid #F1F5F9; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
+        <div style="width: 42px; height: 42px; background: rgba(239,68,68,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #EF4444;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 14px; font-weight: 700; color: #0F172A;">Makan Siang Padang</div>
+          <div style="font-size: 11px; color: #64748B; margin-top: 2px;">Makanan • Tunai</div>
+        </div>
+        <div style="font-size: 14px; font-weight: 800; color: #EF4444;">-Rp 35.000</div>
+      </div>
+
+      <!-- Item 2 -->
+      <div style="background: #FFF; border: 1.2px solid #F1F5F9; border-radius: 14px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+        <div style="width: 42px; height: 42px; background: rgba(239,68,68,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #EF4444;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 14px; font-weight: 700; color: #0F172A;">Bensin Motor Pertalite</div>
+          <div style="font-size: 11px; color: #64748B; margin-top: 2px;">Transportasi • E-Money</div>
+        </div>
+        <div style="font-size: 14px; font-weight: 800; color: #EF4444;">-Rp 50.000</div>
+      </div>
+
+      <div style="font-size: 11.5px; font-weight: 700; color: #64748B; margin-bottom: 8px;">KEMARIN - 01 NOV 2026</div>
+
+      <!-- Item 3 -->
+      <div style="background: #FFF; border: 1.2px solid #F1F5F9; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
+        <div style="width: 42px; height: 42px; background: rgba(16,185,129,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #10B981;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 14px; font-weight: 700; color: #0F172A;">Gaji Bulanan PT Maju</div>
+          <div style="font-size: 11px; color: #64748B; margin-top: 2px;">Pendapatan • Transfer Bank</div>
+        </div>
+        <div style="font-size: 14px; font-weight: 800; color: #10B981;">+Rp 7.500.000</div>
+      </div>
+
+      <!-- Item 4 -->
+      <div style="background: #FFF; border: 1.2px solid #F1F5F9; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
+        <div style="width: 42px; height: 42px; background: rgba(239,68,68,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #EF4444;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 14px; font-weight: 700; color: #0F172A;">Kopi Kenangan</div>
+          <div style="font-size: 11px; color: #64748B; margin-top: 2px;">Minuman • QRIS</div>
+        </div>
+        <div style="font-size: 14px; font-weight: 800; color: #EF4444;">-Rp 22.000</div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="flutter-bottom-nav">
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Beranda</span></div>
+      <div class="bottom-tab active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"></path><line x1="8" y1="8" x2="16" y2="8"></line><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="12" y2="16"></line></svg><span>Transaksi</span></div>
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg><span>Utang</span></div>
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>Laporan</span></div>
+    </div>
+
+    <div class="home-indicator-bar"></div>
+  </div>
+  </div>
+  <div class="screen-slide">
+<div class="mobile-screen">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">09:41</span>
+      <div class="status-icons"><span>5G</span><span>100%</span></div>
+    </div>
+
+    <!-- AppBar Exact (Centered Title + Arrow Back) -->
+    <div style="padding: 10px 20px; background: #FFF; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #E2E8F0;">
+      <div style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #172033; cursor: pointer;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </div>
+      <div style="font-size: 16px; font-weight: 800; color: #172033;">Tambah Transaksi</div>
+      <div style="width: 36px;"></div>
+    </div>
+
+    <!-- Body -->
+    <div class="content-body" style="padding: 16px 20px 20px 20px;">
+      <!-- TypeButton Row -->
+      <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+        <div style="flex: 1; height: 50px; background: #172033; color: #FFF; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 700; box-shadow: 0 4px 10px rgba(23,32,51,0.2);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+          <span>Pengeluaran</span>
+        </div>
+        <div style="flex: 1; height: 50px; background: #FFF; border: 1.5px solid #E2E8F0; color: #16A34A; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 700;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+          <span>Pemasukan</span>
+        </div>
+      </div>
+
+      <!-- Nominal Input Card -->
+      <div style="margin-bottom: 20px;">
+        <label style="font-size: 14px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">Nominal</label>
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 14px; padding: 12px 16px; display: flex; align-items: center;">
+          <span style="font-size: 22px; font-weight: 800; color: #172033; margin-right: 4px;">Rp </span>
+          <span style="font-size: 24px; font-weight: 800; color: #172033;">75.000</span>
+        </div>
+      </div>
+
+      <!-- Kategori Input -->
+      <div style="margin-bottom: 20px;">
+        <label style="font-size: 14px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">Kategori</label>
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 28px; height: 28px; background: rgba(245,158,11,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #F59E0B;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+            </div>
+            <span style="font-size: 14px; font-weight: 600; color: #172033;">Makanan & Minuman</span>
+          </div>
+          <span style="color: #94A3B8;">▼</span>
+        </div>
+      </div>
+
+      <!-- Metode Pembayaran Chips Wrap -->
+      <div style="margin-bottom: 20px;">
+        <label style="font-size: 14px; font-weight: 700; color: #374151; display: block; margin-bottom: 10px;">Metode Pembayaran</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <div style="background: #5B4DFF; color: #FFF; border-radius: 20px; padding: 8px 14px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+            <span>Tunai</span>
+          </div>
+          <div style="background: #FFF; border: 1px solid #E5E7EB; color: #374151; border-radius: 20px; padding: 8px 14px; font-size: 12px; font-weight: 600;">
+            <span>E-Money</span>
+          </div>
+          <div style="background: #FFF; border: 1px solid #E5E7EB; color: #374151; border-radius: 20px; padding: 8px 14px; font-size: 12px; font-weight: 600;">
+            <span>Transfer Bank</span>
+          </div>
+          <div style="background: #FFF; border: 1px solid #E5E7EB; color: #374151; border-radius: 20px; padding: 8px 14px; font-size: 12px; font-weight: 600;">
+            <span>M-Banking</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tanggal & Catatan -->
+      <div style="margin-bottom: 16px;">
+        <label style="font-size: 14px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">Tanggal</label>
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 14px; color: #172033;">02/11/2026</span>
+          <span style="color: #4F46E5;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <label style="font-size: 14px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">Catatan</label>
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 14px; padding: 14px 16px; font-size: 14px; color: #172033;">
+          Makan malam bersama tim kantor
+        </div>
+      </div>
+
+      <!-- Tombol Simpan Transaksi -->
+      <div style="margin-top: auto; height: 52px; background: #5B4DFF; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 15px; font-weight: 800; box-shadow: 0 4px 14px rgba(91,77,255,0.4); cursor: pointer;">
+        Simpan Transaksi
+      </div>
+    </div>
+
+    <div class="home-indicator-bar"></div>
+  </div>
+  </div>
+  <div class="screen-slide">
+<div class="mobile-screen">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">09:41</span>
+      <div class="status-icons"><span>5G</span><span>100%</span></div>
+    </div>
+
+    <!-- Header Exact: Utang & Piutang + Tombol Catat Purple Pill -->
+    <div style="padding: 10px 16px 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <div style="font-size: 19px; font-weight: 800; letter-spacing: -0.3px; color: #0F172A;">Utang & Piutang</div>
+        <div style="font-size: 11.5px; font-weight: 500; color: #64748B; margin-top: 2px;">Manajemen komitmen & tagihan</div>
+      </div>
+      <div style="background: #5B4DFF; border-radius: 20px; padding: 8px 14px; display: flex; align-items: center; gap: 4px; color: #FFF; font-size: 12.5px; font-weight: 700; box-shadow: 0 3px 8px rgba(91,77,255,0.35); cursor: pointer;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>Catat</span>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-body" style="padding: 0 16px 20px 16px;">
+      <!-- DebtSegmentedTabs (Utang vs Piutang with count badges) -->
+      <div style="background: #EEF2F6; border-radius: 24px; padding: 4px; display: flex; margin-bottom: 16px;">
+        <div style="flex: 1; background: #5B4DFF; border-radius: 20px; padding: 9px 0; text-align: center; color: #FFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 3px 8px rgba(91,77,255,0.3);">
+          <span>Utang</span>
+          <span style="background: rgba(255,255,255,0.25); border-radius: 10px; padding: 1px 6px; font-size: 10.5px;">2</span>
+        </div>
+        <div style="flex: 1; border-radius: 20px; padding: 9px 0; text-align: center; color: #64748B; font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;">
+          <span>Piutang</span>
+          <span style="background: rgba(0,0,0,0.06); border-radius: 10px; padding: 1px 6px; font-size: 10.5px;">1</span>
+        </div>
+      </div>
+
+      <!-- Total Summary Card -->
+      <div style="background: #FFF; border-radius: 16px; border: 1px solid #E2E8F0; padding: 14px 18px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 11px; font-weight: 600; color: #64748B;">TOTAL UTANG BELUM LUNAS</div>
+          <div style="font-size: 20px; font-weight: 800; color: #EF4444; margin-top: 2px;">Rp 1.450.000</div>
+        </div>
+        <div style="background: rgba(239,68,68,0.1); color: #EF4444; border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 700;">
+          2 Tagihan
+        </div>
+      </div>
+
+      <!-- Debt Card 1: Pinjaman Laptop Budi -->
+      <div style="background: #FFF; border-radius: 16px; border: 1px solid #E2E8F0; padding: 16px; margin-bottom: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.03);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+          <div>
+            <div style="font-size: 14.5px; font-weight: 800; color: #0F172A;">Pinjaman Laptop - Budi</div>
+            <div style="font-size: 11.5px; color: #64748B; margin-top: 2px;">Jatuh Tempo: 15 Nov 2026</div>
+          </div>
+          <div style="background: #FEF3C7; color: #F59E0B; border-radius: 6px; padding: 3px 8px; font-size: 10.5px; font-weight: 700;">
+            Cicilan
+          </div>
+        </div>
+
+        <!-- Progress Bar Pelunasan -->
+        <div style="height: 6px; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+          <div style="width: 36%; height: 100%; background: #10B981;"></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 12px;">
+          <span style="color: #64748B;">Sisa: <strong style="color: #0F172A;">Rp 950.000</strong></span>
+          <span style="color: #94A3B8;">Total: Rp 1.500.000</span>
+        </div>
+
+        <div style="height: 38px; background: rgba(91,77,255,0.08); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700; color: #5B4DFF; cursor: pointer;">
+          Catat Pembayaran Cicilan
+        </div>
+      </div>
+
+      <!-- Debt Card 2: Bayar Kost Bu Siti -->
+      <div style="background: #FFF; border-radius: 16px; border: 1px solid #E2E8F0; padding: 16px; margin-bottom: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.03);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+          <div>
+            <div style="font-size: 14.5px; font-weight: 800; color: #0F172A;">Bayar Kost - Bu Siti</div>
+            <div style="font-size: 11.5px; color: #EF4444; font-weight: 600; margin-top: 2px;">Jatuh Tempo: 05 Nov (3 hari lagi!)</div>
+          </div>
+          <div style="background: #FEE2E2; color: #EF4444; border-radius: 6px; padding: 3px 8px; font-size: 10.5px; font-weight: 700;">
+            Segera
+          </div>
+        </div>
+
+        <div style="height: 6px; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+          <div style="width: 0%; height: 100%; background: #EF4444;"></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 12px;">
+          <span style="color: #64748B;">Sisa: <strong style="color: #EF4444;">Rp 500.000</strong></span>
+          <span style="color: #94A3B8;">Total: Rp 500.000</span>
+        </div>
+
+        <div style="height: 38px; background: #5B4DFF; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700; color: #FFF; cursor: pointer;">
+          Lunasi Sekarang
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="flutter-bottom-nav">
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Beranda</span></div>
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"></path><line x1="8" y1="8" x2="16" y2="8"></line><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="12" y2="16"></line></svg><span>Transaksi</span></div>
+      <div class="bottom-tab active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg><span>Utang</span></div>
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>Laporan</span></div>
+    </div>
+
+    <div class="home-indicator-bar"></div>
+  </div>
+  </div>
+  <div class="screen-slide">
+<div class="mobile-screen">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">09:41</span>
+      <div class="status-icons"><span>5G</span><span>100%</span></div>
+    </div>
+
+    <!-- Header Exact: Laporan Keuangan + Unduh Pill -->
+    <div style="padding: 10px 16px 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 38px; height: 38px; background: rgba(91,77,255,0.12); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #5B4DFF;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        </div>
+        <div>
+          <div style="font-size: 18px; font-weight: 800; letter-spacing: -0.3px; color: #0F172A;">Laporan Keuangan</div>
+          <div style="font-size: 11.5px; font-weight: 500; color: #64748B;">Ikhtisar performa & akun personal</div>
+        </div>
+      </div>
+      <div style="background: #5B4DFF; border-radius: 20px; padding: 7px 12px; display: flex; align-items: center; gap: 4px; color: #FFF; font-size: 11.5px; font-weight: 700; box-shadow: 0 3px 8px rgba(91,77,255,0.3); cursor: pointer;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>Unduh</span>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-body" style="padding: 0 16px 20px 16px;">
+      <!-- Date Bar Picker -->
+      <div style="background: #FFF; border-radius: 14px; border: 1px solid #E2E8F0; padding: 12px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #5B4DFF;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
+        <span style="font-size: 13.5px; font-weight: 700; color: #0F172A;">November 2026</span>
+        <span style="margin-left: auto; color: #94A3B8;">▼</span>
+      </div>
+
+      <!-- Segment Filter (Bulan Ini / 3 Bulan / Tahun Ini) -->
+      <div style="background: #E2E8F0; border-radius: 12px; padding: 4px; display: flex; margin-bottom: 14px;">
+        <div style="flex: 1; text-align: center; padding: 6px; font-size: 12px; font-weight: 700; background: #FFF; border-radius: 8px; color: #5B4DFF;">Bulan Ini</div>
+        <div style="flex: 1; text-align: center; padding: 6px; font-size: 12px; font-weight: 600; color: #64748B;">3 Bulan</div>
+        <div style="flex: 1; text-align: center; padding: 6px; font-size: 12px; font-weight: 600; color: #64748B;">Tahun Ini</div>
+      </div>
+
+      <!-- Arus Kas Bersih Card -->
+      <div style="background: #FFF; border-radius: 16px; border: 1px solid #E2E8F0; padding: 16px; margin-bottom: 14px;">
+        <div style="font-size: 11px; font-weight: 700; color: #64748B; margin-bottom: 4px;">SURPLUS BULAN INI</div>
+        <div style="font-size: 24px; font-weight: 800; color: #10B981; margin-bottom: 12px;">+Rp 12.850.000</div>
+        
+        <div style="display: flex; gap: 10px; padding-top: 10px; border-top: 1px solid #F1F5F9;">
+          <div style="flex: 1;">
+            <div style="font-size: 10.5px; color: #64748B;">Masuk</div>
+            <div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">Rp 18.500k</div>
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 10.5px; color: #64748B;">Keluar</div>
+            <div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">Rp 5.650k</div>
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 10.5px; color: #64748B;">Rasio Hemat</div>
+            <div style="font-size: 13px; font-weight: 700; color: #10B981; margin-top: 2px;">69%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Donut Chart Card -->
+      <div style="background: #FFF; border-radius: 18px; border: 1px solid #E2E8F0; padding: 18px 16px; text-align: center;">
+        <div style="font-size: 12px; font-weight: 700; color: #64748B; margin-bottom: 4px;">KOMPOSISI PENGELUARAN</div>
+        <div style="font-size: 22px; font-weight: 800; color: #0F172A; margin-bottom: 14px;">Rp 5.650.000</div>
+
+        <!-- Donut Chart SVG -->
+        <div style="display: flex; justify-content: center; margin-bottom: 14px;">
+          <svg width="150" height="150" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#F1F5F9" stroke-width="14"></circle>
+            <!-- Makanan 42% -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#5B4DFF" stroke-width="14" stroke-dasharray="105.5 251.2" stroke-dashoffset="0"></circle>
+            <!-- Belanja 24% -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#F59E0B" stroke-width="14" stroke-dasharray="60.3 251.2" stroke-dashoffset="-105.5"></circle>
+            <!-- Transport 20% -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#10B981" stroke-width="14" stroke-dasharray="50.2 251.2" stroke-dashoffset="-165.8"></circle>
+            <!-- Tagihan 14% -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#EF4444" stroke-width="14" stroke-dasharray="35.2 251.2" stroke-dashoffset="-216"></circle>
+          </svg>
+        </div>
+
+        <!-- Legend Items -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; font-size: 11.5px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="width: 10px; height: 10px; background: #5B4DFF; border-radius: 3px;"></span>
+            <span>Makanan (42%)</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="width: 10px; height: 10px; background: #F59E0B; border-radius: 3px;"></span>
+            <span>Belanja (24%)</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="width: 10px; height: 10px; background: #10B981; border-radius: 3px;"></span>
+            <span>Transport (20%)</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="width: 10px; height: 10px; background: #EF4444; border-radius: 3px;"></span>
+            <span>Tagihan (14%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="flutter-bottom-nav">
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Beranda</span></div>
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"></path><line x1="8" y1="8" x2="16" y2="8"></line><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="12" y2="16"></line></svg><span>Transaksi</span></div>
+      <div class="bottom-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg><span>Utang</span></div>
+      <div class="bottom-tab active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>Laporan</span></div>
+    </div>
+
+    <div class="home-indicator-bar"></div>
+  </div>
+  </div>
+  <div class="screen-slide">
+<div class="mobile-screen">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">09:41</span>
+      <div class="status-icons"><span>5G</span><span>100%</span></div>
+    </div>
+
+    <!-- AppBar Exact (Back arrow + Squircle Assistant + AI Parser Siap) -->
+    <div style="padding: 10px 16px; background: #FFF; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; gap: 12px;">
+      <div style="width: 36px; height: 36px; background: #F1F5F9; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #0F172A; cursor: pointer;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </div>
+      <div style="width: 38px; height: 38px; background: #5B4DFF; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #FFF; box-shadow: 0 3px 8px rgba(91,77,255,0.3);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
+      </div>
+      <div>
+        <div style="font-size: 15.5px; font-weight: 800; color: #0F172A;">FinChat Assistant</div>
+        <div style="display: flex; align-items: center; gap: 5px; font-size: 11px; color: #10B981; font-weight: 600;">
+          <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%;"></span>
+          <span>AI Parser Siap</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Messages Content -->
+    <div class="content-body" style="padding: 14px 16px 14px 16px;">
+      <!-- Welcome Message Bot -->
+      <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+        <div style="width: 28px; height: 28px; background: #5B4DFF; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #FFF; flex-shrink: 0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
+        </div>
+        <div style="background: #FFF; border: 1px solid #E2E8F0; border-radius: 16px 16px 16px 4px; padding: 12px 14px; font-size: 13px; line-height: 1.45; color: #0F172A; max-width: 270px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+          Halo Rizqi! 👋 Ketik transaksi harianmu dengan bahasa santai, atau tap template kilat di bawah:
+        </div>
+      </div>
+
+      <!-- Quick Template Chips -->
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-left: 38px; margin-bottom: 16px;">
+        <span style="background: rgba(91,77,255,0.08); color: #5B4DFF; border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 600;">Beli makan siang 35rb</span>
+        <span style="background: rgba(91,77,255,0.08); color: #5B4DFF; border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 600;">Bensin motor 50rb</span>
+      </div>
+
+      <!-- User Message -->
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+        <div style="background: #5B4DFF; color: #FFF; border-radius: 16px 16px 4px 16px; padding: 12px 14px; font-size: 13px; line-height: 1.45; max-width: 260px; box-shadow: 0 4px 12px rgba(91,77,255,0.3);">
+          Beli makan siang nasi padang 35.000 cash
+        </div>
+      </div>
+
+      <!-- Bot AI Confirmation Card -->
+      <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+        <div style="width: 28px; height: 28px; background: #5B4DFF; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #FFF; flex-shrink: 0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
+        </div>
+        <div style="background: #FFF; border: 1.5px solid #10B981; border-radius: 16px 16px 16px 4px; padding: 14px; max-width: 280px; box-shadow: 0 3px 10px rgba(0,0,0,0.04);">
+          <div style="font-size: 12px; font-weight: 700; color: #10B981; margin-bottom: 6px;">TRANSAKSI TERDETEKSI:</div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <div style="width: 32px; height: 32px; background: rgba(239,68,68,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #EF4444;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+            </div>
+            <div>
+              <div style="font-size: 13.5px; font-weight: 800; color: #0F172A;">Makan Siang Nasi Padang</div>
+              <div style="font-size: 11px; color: #64748B;">Makanan & Minuman • Tunai</div>
+            </div>
+          </div>
+          <div style="font-size: 18px; font-weight: 900; color: #EF4444; margin-bottom: 10px;">-Rp 35.000</div>
+          
+          <div style="height: 36px; background: #10B981; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 800; color: #FFF; cursor: pointer;">
+            ✓ Konfirmasi & Simpan
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Bar -->
+      <div style="margin-top: auto; display: flex; align-items: center; gap: 8px; background: #FFF; border: 1.5px solid #E2E8F0; border-radius: 14px; padding: 6px 8px 6px 14px;">
+        <input type="text" placeholder="Ketik transaksi kamu..." style="flex: 1; border: none; outline: none; font-size: 13.5px; color: #0F172A;" value="" />
+        <span style="color: #64748B; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></span>
+        <div style="width: 34px; height: 34px; background: #5B4DFF; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #FFF; cursor: pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-indicator-bar"></div>
+  </div>
+  </div>
+</div>
+
+
+  <script>
+    function selectScreen(index) {
+      document.querySelectorAll('.screen-slide').forEach((el, idx) => {
+        if (idx === index) el.classList.add('active');
+        else el.classList.remove('active');
+      });
+      document.querySelectorAll('.switch-pill').forEach((btn, idx) => {
+        if (idx === index) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.screen-slide').forEach((wrapper, idx) => {
+        // Bottom Nav Links
+        const tabs = wrapper.querySelectorAll('.flutter-bottom-nav .bottom-tab');
+        if (tabs.length === 4) {
+          tabs[0].onclick = () => selectScreen(2); // Beranda
+          tabs[1].onclick = () => selectScreen(3); // Transaksi
+          tabs[2].onclick = () => selectScreen(5); // Utang
+          tabs[3].onclick = () => selectScreen(6); // Laporan
+        }
+
+        // Screen 01 Login button -> Home
+        if (idx === 0) {
+          const loginBtn = wrapper.querySelector('div[style*="background: rgb(91, 77, 255)"], div[style*="background: #5B4DFF"]');
+          if (loginBtn) loginBtn.onclick = () => selectScreen(2);
+          const regLink = wrapper.querySelector('strong');
+          if (regLink) regLink.onclick = () => selectScreen(1);
+        }
+
+        // Screen 02 Register back -> Login
+        if (idx === 1) {
+          const backBtn = wrapper.querySelector('div[style*="cursor: pointer"]');
+          if (backBtn) backBtn.onclick = () => selectScreen(0);
+          const regBtn = wrapper.querySelector('div[style*="background: #5B4DFF"]');
+          if (regBtn) regBtn.onclick = () => selectScreen(2);
+          const logLink = wrapper.querySelector('strong');
+          if (logLink) logLink.onclick = () => selectScreen(0);
+        }
+
+        // Screen 03 Home -> Quick Actions & AI
+        if (idx === 2) {
+          const aiBtn = wrapper.querySelector('div[style*="position: absolute; bottom: 82px"]');
+          if (aiBtn) aiBtn.onclick = () => selectScreen(7);
+          const quickActions = wrapper.querySelectorAll('.content-body > div:nth-child(3) > div');
+          if (quickActions.length >= 4) {
+            quickActions[0].onclick = () => selectScreen(4); // Add Transaksi
+            quickActions[1].onclick = () => selectScreen(7); // FinChat AI
+            quickActions[2].onclick = () => selectScreen(5); // Utang
+            quickActions[3].onclick = () => selectScreen(6); // Laporan
+          }
+        }
+
+        // Screen 05 Add Transaksi -> Back
+        if (idx === 4) {
+          const backBtn = wrapper.querySelector('div[style*="cursor: pointer"]');
+          if (backBtn) backBtn.onclick = () => selectScreen(2);
+          const saveBtn = wrapper.querySelector('div[style*="Simpan Transaksi"]');
+          if (saveBtn) saveBtn.onclick = () => selectScreen(3);
+        }
+
+        // Screen 08 Chatbot -> Back
+        if (idx === 7) {
+          const backBtn = wrapper.querySelector('div[style*="cursor: pointer"]');
+          if (backBtn) backBtn.onclick = () => selectScreen(2);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

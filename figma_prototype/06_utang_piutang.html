@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=390, initial-scale=1.0">
+  <title>06_utang_piutang.html</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .mobile-frame {
+      width: 390px;
+      height: 844px;
+      background: #F8FAFC;
+      border-radius: 40px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .status-bar {
+      height: 44px;
+      padding: 0 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0F172A;
+      flex-shrink: 0;
+    }
+    .status-time { font-weight: 700; }
+    .status-icons { display: flex; gap: 6px; font-size: 12px; }
+    .screen-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .screen-body::-webkit-scrollbar { display: none; }
+    .bottom-nav-bar {
+      height: 60px;
+      background: #FFFFFF;
+      border-top: 1px solid #E2E8F0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-shrink: 0;
+      padding: 0 8px;
+    }
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #94A3B8;
+      font-size: 10.5px;
+      font-weight: 600;
+    }
+    .nav-tab.active { color: #4F46E5; }
+    .nav-tab.active svg { color: #4F46E5; }
+    .bottom-home-bar {
+      width: 140px;
+      height: 5px;
+      background: #0F172A;
+      border-radius: 10px;
+      margin: 4px auto 6px auto;
+      flex-shrink: 0;
+    }
+    </style>
+</head>
+<body>
+
+    <!-- 06_UTANG_PIUTANG -->
+    <div class="mobile-frame" id="frame_06">
+      <div class="status-bar">
+        <span class="status-time">09:41</span>
+        <div class="status-icons"><span>5G</span><span>100%</span></div>
+      </div>
+
+      <div style="padding: 6px 16px 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 19px; font-weight: 800; letter-spacing: -0.3px; color: #0F172A;">Utang & Piutang</div>
+          <div style="font-size: 11.5px; color: #64748B;">Manajemen komitmen & tagihan</div>
+        </div>
+        <div style="background: #5B4DFF; border-radius: 18px; padding: 6px 12px; display: flex; align-items: center; gap: 4px; color: #FFF; font-size: 12px; font-weight: 700;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> <span>Catat</span>
+        </div>
+      </div>
+
+      <div class="screen-body" style="padding: 0 16px;">
+        <!-- Tabs -->
+        <div style="background: #EEF2F6; border-radius: 20px; padding: 4px; display: flex; margin-bottom: 12px;">
+          <div style="flex: 1; background: #5B4DFF; border-radius: 16px; padding: 7px 0; text-align: center; color: #FFF; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span>Utang</span> <span style="background: rgba(255,255,255,0.25); border-radius: 8px; padding: 1px 5px; font-size: 10px;">2</span>
+          </div>
+          <div style="flex: 1; border-radius: 16px; padding: 7px 0; text-align: center; color: #64748B; font-size: 12.5px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span>Piutang</span> <span style="background: rgba(0,0,0,0.06); border-radius: 8px; padding: 1px 5px; font-size: 10px;">1</span>
+          </div>
+        </div>
+
+        <!-- Total Card -->
+        <div style="background: #FFF; border-radius: 14px; border: 1px solid #E2E8F0; padding: 12px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 10.5px; font-weight: 600; color: #64748B;">TOTAL UTANG BELUM LUNAS</div>
+            <div style="font-size: 18px; font-weight: 800; color: #EF4444; margin-top: 2px;">Rp 1.450.000</div>
+          </div>
+          <div style="background: rgba(239,68,68,0.1); color: #EF4444; border-radius: 6px; padding: 3px 8px; font-size: 10.5px; font-weight: 700;">2 Tagihan</div>
+        </div>
+
+        <!-- Card 1 -->
+        <div style="background: #FFF; border-radius: 14px; border: 1px solid #E2E8F0; padding: 14px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <div style="font-size: 14px; font-weight: 800; color: #0F172A;">Pinjaman Laptop - Budi</div>
+              <div style="font-size: 11px; color: #64748B; margin-top: 1px;">Jatuh Tempo: 15 Nov 2026</div>
+            </div>
+            <div style="background: #FEF3C7; color: #F59E0B; border-radius: 6px; padding: 2px 6px; font-size: 10px; font-weight: 700;">Cicilan</div>
+          </div>
+          <div style="height: 5px; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 6px;">
+            <div style="width: 36%; height: 100%; background: #10B981;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 10px;">
+            <span style="color: #64748B;">Sisa: <strong style="color: #0F172A;">Rp 950.000</strong></span>
+            <span style="color: #94A3B8;">Total: Rp 1.500.000</span>
+          </div>
+          <div style="height: 34px; background: rgba(91,77,255,0.08); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #5B4DFF;">Catat Pembayaran Cicilan</div>
+        </div>
+
+        <!-- Card 2 -->
+        <div style="background: #FFF; border-radius: 14px; border: 1px solid #E2E8F0; padding: 14px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <div style="font-size: 14px; font-weight: 800; color: #0F172A;">Bayar Kost - Bu Siti</div>
+              <div style="font-size: 11px; color: #EF4444; font-weight: 600; margin-top: 1px;">Jatuh Tempo: 05 Nov (3 hari lagi!)</div>
+            </div>
+            <div style="background: #FEE2E2; color: #EF4444; border-radius: 6px; padding: 2px 6px; font-size: 10px; font-weight: 700;">Segera</div>
+          </div>
+          <div style="height: 5px; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 6px;">
+            <div style="width: 0%; height: 100%; background: #EF4444;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 10px;">
+            <span style="color: #64748B;">Sisa: <strong style="color: #EF4444;">Rp 500.000</strong></span>
+            <span style="color: #94A3B8;">Total: Rp 500.000</span>
+          </div>
+          <div style="height: 34px; background: #5B4DFF; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #FFF;">Lunasi Sekarang</div>
+        </div>
+      </div>
+
+      <div class="bottom-nav-bar">
+        <div class="nav-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Beranda</span></div>
+        <div class="nav-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"></path><line x1="8" y1="8" x2="16" y2="8"></line><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="12" y2="16"></line></svg><span>Transaksi</span></div>
+        <div class="nav-tab active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg><span>Utang</span></div>
+        <div class="nav-tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>Laporan</span></div>
+      </div>
+      <div class="bottom-home-bar"></div>
+    </div>
+
+</body>
+</html>

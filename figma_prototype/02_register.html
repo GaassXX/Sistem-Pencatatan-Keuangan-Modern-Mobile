@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=390, initial-scale=1.0">
+  <title>02_register.html</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .mobile-frame {
+      width: 390px;
+      height: 844px;
+      background: #F8FAFC;
+      border-radius: 40px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .status-bar {
+      height: 44px;
+      padding: 0 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0F172A;
+      flex-shrink: 0;
+    }
+    .status-time { font-weight: 700; }
+    .status-icons { display: flex; gap: 6px; font-size: 12px; }
+    .screen-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .screen-body::-webkit-scrollbar { display: none; }
+    .bottom-nav-bar {
+      height: 60px;
+      background: #FFFFFF;
+      border-top: 1px solid #E2E8F0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-shrink: 0;
+      padding: 0 8px;
+    }
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #94A3B8;
+      font-size: 10.5px;
+      font-weight: 600;
+    }
+    .nav-tab.active { color: #4F46E5; }
+    .nav-tab.active svg { color: #4F46E5; }
+    .bottom-home-bar {
+      width: 140px;
+      height: 5px;
+      background: #0F172A;
+      border-radius: 10px;
+      margin: 4px auto 6px auto;
+      flex-shrink: 0;
+    }
+    </style>
+</head>
+<body>
+
+    <!-- 02_REGISTER_SCREEN -->
+    <div class="mobile-frame" id="frame_02">
+      <div class="status-bar">
+        <span class="status-time">09:41</span>
+        <div class="status-icons"><span>5G</span><span>100%</span></div>
+      </div>
+      <div class="screen-body" style="padding: 0 22px 16px 22px; justify-content: space-between;">
+        <div>
+          <!-- Back button -->
+          <div style="width: 36px; height: 36px; background: #F1F5F9; border-radius: 11px; display: flex; align-items: center; justify-content: center; color: #0F172A; margin-bottom: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </div>
+          <!-- Logo Horizontal -->
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 42px; height: 42px; background: #5B4DFF; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #FFF; box-shadow: 0 4px 10px rgba(91,77,255,0.3);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+            </div>
+            <div>
+              <div style="font-size: 20px; font-weight: 900; color: #0F172A; letter-spacing: -0.5px;">FinChat</div>
+              <div style="font-size: 11.5px; font-weight: 600; color: #64748B;">Laporan Keuangan</div>
+            </div>
+          </div>
+          <div style="font-size: 22px; font-weight: 900; color: #0F172A; letter-spacing: -0.4px;">Buat Akun Baru</div>
+          <div style="font-size: 12px; line-height: 1.4; color: #64748B; margin-top: 3px; margin-bottom: 14px;">
+            Daftar untuk mengontrol keuangan harian dan tracking utang-piutang.
+          </div>
+        </div>
+
+        <!-- Form Card -->
+        <div style="background: #FFFFFF; border-radius: 20px; border: 1.2px solid #E2E8F0; padding: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.04);">
+          <div style="margin-bottom: 10px;">
+            <label style="font-size: 12.5px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 4px;">Nama Lengkap</label>
+            <div style="height: 44px; background: #FFFFFF; border: 1.2px solid #E2E8F0; border-radius: 12px; padding: 0 12px; display: flex; align-items: center; gap: 10px;">
+              <span style="color: #64748B;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>
+              <span style="font-size: 13.5px; color: #94A3B8;">Contoh: Rizqi Ramadhan</span>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 10px;">
+            <label style="font-size: 12.5px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 4px;">Email</label>
+            <div style="height: 44px; background: #FFFFFF; border: 1.2px solid #E2E8F0; border-radius: 12px; padding: 0 12px; display: flex; align-items: center; gap: 10px;">
+              <span style="color: #64748B;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></span>
+              <span style="font-size: 13.5px; color: #94A3B8;">nama@email.com</span>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 10px;">
+            <label style="font-size: 12.5px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 4px;">Password</label>
+            <div style="height: 44px; background: #FFFFFF; border: 1.2px solid #E2E8F0; border-radius: 12px; padding: 0 12px; display: flex; align-items: center; gap: 10px;">
+              <span style="color: #64748B;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>
+              <span style="font-size: 13.5px; color: #94A3B8;">Minimal 8 karakter</span>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label style="font-size: 12.5px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 4px;">Konfirmasi Password</label>
+            <div style="height: 44px; background: #FFFFFF; border: 1.2px solid #E2E8F0; border-radius: 12px; padding: 0 12px; display: flex; align-items: center; gap: 10px;">
+              <span style="color: #64748B;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><rect x="8" y="11" width="8" height="6" rx="1"></rect></svg></span>
+              <span style="font-size: 13.5px; color: #94A3B8;">Ulangi password di atas</span>
+            </div>
+          </div>
+
+          <div style="width: 100%; height: 48px; background: #5B4DFF; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 14.5px; font-weight: 800; box-shadow: 0 4px 12px rgba(91,77,255,0.35); cursor: pointer;">
+            Daftar Sekarang
+          </div>
+        </div>
+
+        <div style="text-align: center; font-size: 13px; color: #64748B; padding-bottom: 4px;">
+          Sudah memiliki akun? <strong style="color: #5B4DFF; font-weight: 800; cursor: pointer;">Masuk Sekarang</strong>
+        </div>
+      </div>
+      <div class="bottom-home-bar"></div>
+    </div>
+
+</body>
+</html>
