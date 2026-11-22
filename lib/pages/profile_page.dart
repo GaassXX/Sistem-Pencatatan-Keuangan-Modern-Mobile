@@ -160,6 +160,41 @@ class _ProfilePageState extends State<ProfilePage> {
                 _buildSecurityCard(),
                 const SizedBox(height: 24),
                 _buildLogoutButton(),
+                const SizedBox(height: 32),
+                Center(
+                  child: Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset(
+                          'assets/icon/app_logo.png',
+                          width: 44,
+                          height: 44,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'FinChat v1.0.0',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: secondaryText,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Sistem Pencatatan Keuangan Modern',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: secondaryText.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

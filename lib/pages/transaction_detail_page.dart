@@ -79,7 +79,12 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
   }
 
   String _formatTime(dynamic value) {
-    final date = DateTime.tryParse(value?.toString() ?? '');
+    if (value == null || value.toString().trim().isEmpty) return '-';
+    String str = value.toString().trim();
+    if (!str.endsWith('Z') && !str.contains('+') && !RegExp(r'-\d{2}:\d{2}$').hasMatch(str)) {
+      str += 'Z';
+    }
+    final date = DateTime.tryParse(str);
     if (date == null) return '-';
     final local = date.toLocal();
     return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';

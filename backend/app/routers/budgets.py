@@ -1,5 +1,5 @@
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
 from app.core.database import get_db
@@ -73,7 +73,7 @@ def get_budgets(
         }
     }
 
-@router.post("")
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_or_update_budget(
     req: BudgetCreate,
     current_user: User = Depends(get_current_user),
@@ -85,6 +85,10 @@ def create_or_update_budget(
     category = db.query(Category).filter(Category.id == req.category_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Kategori tidak ditemukan")
+    if category.is_neutral:
+        raise HTTPException(status_code=422, detail="Tidak dapat membuat anggaran untuk kategori sistem/netral")
+    if category.type != "expense":
+        raise HTTPException(status_code=422, detail="Anggaran hanya dapat dibuat untuk kategori pengeluaran")
 
     budget = db.query(Budget).filter(
         Budget.user_id == current_user.id,

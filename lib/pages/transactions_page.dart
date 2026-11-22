@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
 import '../utils/category_helper.dart';
@@ -469,8 +469,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final iconColor = Theme.of(context).colorScheme.onSurface;
     final subtitleColor = isDark ? const Color(0xFF64748B) : const Color(0xFF4F46E5);
-    final selectedDateBg = const Color(0xFF4F46E5);
-    final selectedDateFg = Colors.white;
+    const selectedDateBg = Color(0xFF4F46E5);
+    const selectedDateFg = Colors.white;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),

@@ -374,7 +374,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
                     CircleAvatar(radius: 3.5, backgroundColor: Color(0xFF10B981)),
                     SizedBox(width: 5),
                     Text(
-                      'AI Parser Siap',
+                      'Bot Parser Siap',
                       style: TextStyle(
                         fontSize: 11,
                         color: Color(0xFF10B981),
@@ -1112,7 +1112,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
           ),
           const SizedBox(height: 14),
 
-          // 2 Pilihan Kotak Nominal (Opsi Jumlah vs Rekomendasi AI)
+          // 2 Pilihan Kotak Nominal (Opsi Jumlah vs Rekomendasi Sistem)
           Row(
             children: [
               // Opsi 1: Opsi Jumlah
@@ -1160,12 +1160,12 @@ class _ChatBotPageState extends State<ChatBotPage> {
               ),
               const SizedBox(width: 10),
 
-              // Opsi 2: Rekomendasi AI (Ungu Solid)
+              // Opsi 2: Rekomendasi Sistem (Ungu Solid)
               Expanded(
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16),
                   onTap: () {
-                    // Catat rekomendasi AI
+                    // Catat rekomendasi sistem
                     _sendToBackend('$category $recAmount');
                   },
                   child: Container(
@@ -1187,7 +1187,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
                         const Row(
                           children: [
                             Text(
-                              'Rekomendasi AI',
+                              'Rekomendasi Sistem',
                               style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white),
                             ),
                             SizedBox(width: 4),

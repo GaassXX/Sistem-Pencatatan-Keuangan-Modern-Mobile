@@ -1,4 +1,4 @@
-﻿/// Helper date & waktu untuk halaman transaksi.
+/// Helper date & waktu untuk halaman transaksi.
 library;
 
 String monthName(int month) {
@@ -13,20 +13,32 @@ String fullMonthName(int month) {
 
 DateTime? parseDate(dynamic value) {
   if (value == null) return null;
-  return DateTime.tryParse(value.toString());
+  String s = value.toString().trim();
+  if (s.isEmpty) return null;
+  return DateTime.tryParse(s);
+}
+
+/// Helper untuk mem-parsing string datetime dari backend (UTC) ke local device time
+DateTime parseUtcToLocal(dynamic value) {
+  if (value == null) return DateTime.now();
+  String s = value.toString().trim();
+  if (s.isEmpty) return DateTime.now();
+  if (!s.endsWith('Z') && !s.contains('+') && !RegExp(r'-\d{2}:\d{2}$').hasMatch(s)) {
+    s += 'Z';
+  }
+  return (DateTime.tryParse(s) ?? DateTime.now()).toLocal();
 }
 
 DateTime parseDateTime(dynamic createdAt, dynamic date) {
-  final created = DateTime.tryParse(createdAt?.toString() ?? '');
-  if (created != null) return created;
+  if (createdAt != null && createdAt.toString().trim().isNotEmpty) {
+    return parseUtcToLocal(createdAt);
+  }
   final transactionDate = DateTime.tryParse(date?.toString() ?? '');
   return transactionDate ?? DateTime(2000);
 }
 
 DateTime localCreatedDate(dynamic value) {
-  final date = DateTime.tryParse(value?.toString() ?? '');
-  if (date == null) return DateTime.now();
-  return date.toLocal();
+  return parseUtcToLocal(value);
 }
 
 String dayLabel(dynamic value) {
@@ -44,8 +56,7 @@ String dayLabel(dynamic value) {
 }
 
 String formatTime(dynamic value) {
-  final date = DateTime.tryParse(value?.toString() ?? '');
-  if (date == null) return '';
-  final local = date.toLocal();
+  if (value == null || value.toString().trim().isEmpty) return '';
+  final local = parseUtcToLocal(value);
   return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
 }

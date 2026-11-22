@@ -1,6 +1,6 @@
 from datetime import date
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.core.database import get_db
@@ -42,7 +42,7 @@ def get_savings(
         "data": [format_saving(s) for s in savings]
     }
 
-@router.post("")
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_saving(
     req: SavingCreate,
     current_user: User = Depends(get_current_user),
@@ -162,33 +162,70 @@ def get_saving_deposits(
     if not saving:
         raise HTTPException(status_code=404, detail="Tabungan tidak ditemukan")
 
-    deposits = db.query(SavingDeposit).filter(SavingDeposit.saving_id == id).order_by(SavingDeposit.id.desc()).all()
-    return {
-        "success": True,
-        "data": [
-            {
-                "id": d.id,
-                "amount": float(d.amount),
-                "date": d.date.isoformat() if d.date else None,
-                "note": d.note,
-                "created_at": d.created_at.isoformat() if d.created_at else None
-            }
-            for d in deposits
-        ]
-    }
+    try:
+        deposits = db.query(SavingDeposit).filter(SavingDeposit.saving_id == id).order_by(SavingDeposit.id.desc()).all()
+        return {
+            "success": True,
+            "data": [
+                {
+                    "id": d.id,
+                    "amount": float(d.amount or 0.0),
+                    "date": d.date.isoformat() if d.date else None,
+                    "note": d.note,
+                    "created_at": d.created_at.isoformat() if d.created_at else None
+                }
+                for d in deposits
+            ]
+        }
+    except Exception as e:
+        print(f"[Warning] Failed to fetch saving deposits: {e}")
+        return {
+            "success": True,
+            "data": []
+        }
 
-@router.post("/{id}/deposits")
+@router.post("/{id}/deposits", status_code=status.HTTP_201_CREATED)
 def add_saving_deposit(
     id: int,
     req: SavingDepositCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    saving = db.query(Saving).filter(Saving.id == id, Saving.user_id == current_user.id).first()
+    saving = db.query(Saving).filter(
+        Saving.id == id, Saving.user_id == current_user.id
+    ).with_for_update().first()
     if not saving:
         raise HTTPException(status_code=404, detail="Tabungan tidak ditemukan")
+    if saving.status == "completed":
+        raise HTTPException(status_code=422, detail="Target tabungan ini sudah tercapai (completed)")
     if req.amount <= 0:
         raise HTTPException(status_code=422, detail="Jumlah setoran harus lebih dari 0")
+
+    target_amount = float(saving.target_amount or 0.0)
+    current_amount = float(saving.current_amount or 0.0)
+    remaining_target = max(0.0, target_amount - current_amount)
+
+    if remaining_target <= 0:
+        saving.status = "completed"
+        db.commit()
+        raise HTTPException(status_code=422, detail="Target tabungan ini sudah tercapai (completed)")
+
+    if req.amount > remaining_target:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Nominal setoran (Rp {req.amount:,.0f}) melebihi sisa target tabungan (Rp {remaining_target:,.0f})"
+        )
+
+    # Validasi wallet_id jika diberikan (tanpa membuat Expense — setoran tidak
+    # mengurangi saldo kas, hanya mencatat progres tabungan per BRD FR-105)
+    if req.wallet_id:
+        wallet = db.query(Wallet).filter(
+            Wallet.id == req.wallet_id, Wallet.user_id == current_user.id
+        ).with_for_update().first()
+        if not wallet:
+            raise HTTPException(status_code=404, detail="Dompet tidak ditemukan atau bukan milik Anda")
+        if wallet.is_archived:
+            raise HTTPException(status_code=422, detail=f"Dompet '{wallet.name}' telah diarsipkan")
 
     dep_date = req.date or date.today()
     deposit = SavingDeposit(
@@ -202,21 +239,13 @@ def add_saving_deposit(
     db.add(deposit)
 
     # Update current_amount
-    new_curr = float(saving.current_amount or 0.0) + req.amount
+    new_curr = current_amount + req.amount
     saving.current_amount = new_curr
-    if new_curr >= float(saving.target_amount):
+    if new_curr >= target_amount:
         saving.status = "completed"
 
-    # Validasi wallet_id jika diberikan (tanpa membuat Expense — setoran tidak
-    # mengurangi saldo kas, hanya mencatat progres tabungan per BRD FR-105)
-    if req.wallet_id:
-        wallet = db.query(Wallet).filter(
-            Wallet.id == req.wallet_id, Wallet.user_id == current_user.id
-        ).first()
-        if not wallet:
-            raise HTTPException(status_code=404, detail="Dompet tidak ditemukan")
-
     db.commit()
+    db.refresh(saving)
 
     return {
         "success": True,

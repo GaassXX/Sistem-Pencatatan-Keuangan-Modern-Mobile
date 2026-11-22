@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../constants/app_colors.dart';
 import '../models/user.dart';
 import '../models/wallet.dart';
 import '../services/api_service.dart';
@@ -181,41 +182,63 @@ class _HomePageState extends State<HomePage> {
   // ── AppBar ────────────────────────────────────────
 
   PreferredSizeWidget _buildAppBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark ? AppColors.textDarkPrimary : AppColors.textPrimary;
+    final secondaryTextColor = isDark ? AppColors.textDarkSecondary : AppColors.textSecondary;
+
     return AppBar(
       automaticallyImplyLeading: false,
       title: Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF5B4DFF),
                     borderRadius: BorderRadius.circular(11),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.brandPurple.withOpacity(0.25),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                  child: Icon(
-                    _pageIcon(),
-                    size: 20,
-                    color: Colors.white,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(11),
+                    child: Image.asset(
+                      'assets/icon/app_logo.png',
+                      width: 38,
+                      height: 38,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.brandPurple,
+                          borderRadius: BorderRadius.circular(11),
+                        ),
+                        child: const Icon(Icons.account_balance_wallet_rounded, size: 20, color: Colors.white),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'FinChat',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w900,
                         letterSpacing: -0.3,
+                        color: primaryTextColor,
                       ),
                     ),
                     Text(
                       _pageSubtitle(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
+                        color: secondaryTextColor,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -361,6 +384,4 @@ class _HomePageState extends State<HomePage> {
       default: return 'Beranda';
     }
   }
-
-  IconData _pageIcon() => Icons.chat_bubble_rounded;
 }

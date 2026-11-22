@@ -31,8 +31,8 @@ class TransactionCard extends StatelessWidget {
     final textColor = Theme.of(context).colorScheme.onSurface;
     final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
     final mutedColor = isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
-    final expenseColor = const Color(0xFFEF4444);
-    final incomeColor = const Color(0xFF10B981);
+    const expenseColor = Color(0xFFEF4444);
+    const incomeColor = Color(0xFF10B981);
 
     return Material(
       color: Colors.transparent,

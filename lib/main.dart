@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'constants/app_colors.dart';
@@ -11,7 +12,11 @@ final ValueNotifier<ThemeMode> themeNotifier =
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  HttpOverrides.global = MyHttpOverrides();
+  // Bypass sertifikat TLS hanya di mode debug (dev lokal ke backend 127.0.0.1)
+  // Di release build, TLS validation tetap aktif sepenuhnya.
+  if (kDebugMode) {
+    HttpOverrides.global = MyHttpOverrides();
+  }
   await CurrencyService.init();
 
   runApp(const FinChatApp());
@@ -283,6 +288,7 @@ class FinChatApp extends StatelessWidget {
   }
 }
 
+// Hanya digunakan di kDebugMode (lihat main() di atas)
 class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {

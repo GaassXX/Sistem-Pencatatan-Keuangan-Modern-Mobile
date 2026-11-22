@@ -7,6 +7,7 @@ class AppColors {
   static const Color primaryBrand     = Color(0xFF4F46E5); // Deep Indigo / Modern Blue
   static const Color brandBlue        = Color(0xFF4F46E5); // Alias for compatibility
   static const Color brandBlueLight   = Color(0xFFEEF2FF); // Indigo 50 - Background chip/badge
+  static const Color brandPurple      = Color(0xFF7417F6); // FinChat Official Vibrant Purple
   static const Color primaryDark      = Color(0xFF1E1B4B); // Dark Indigo
 
   // ── 2. Semantics & Finance Status ────────────────────────────────

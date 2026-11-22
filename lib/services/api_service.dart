@@ -4,20 +4,12 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-class MyHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    final client = super.createHttpClient(context);
-
-    client.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-
-    return client;
-  }
-}
+// MyHttpOverrides didefinisikan di lib/main.dart dan hanya aktif di kDebugMode.
+// Tidak perlu redefinisi di sini.
 
 class ApiService {
-  // Gunakan 127.0.0.1 bersama 'adb reverse tcp:8000 tcp:8000'
+  // URL backend. Untuk perangkat fisik pakai: adb reverse tcp:8000 tcp:8000
+  // lalu tetap gunakan 127.0.0.1. Untuk emulator ganti ke 10.0.2.2:8000.
   static const String baseUrl = 'http://127.0.0.1:8000/api';
 
   static String? token;
@@ -1045,6 +1037,7 @@ class ApiService {
     required int toWalletId,
     required double amount,
     double adminFee = 0,
+    bool allowNegative = false,
     String? notes,
     DateTime? date,
   }) async {
@@ -1060,6 +1053,7 @@ class ApiService {
         'to_wallet_id': toWalletId,
         'amount': amount,
         'admin_fee': adminFee,
+        'allow_negative': allowNegative,
         'notes': notes,
         if (date != null) 'date': date.toIso8601String(),
       }),
@@ -1103,7 +1097,12 @@ class ApiService {
 
     final body = jsonDecode(response.body);
     if (response.statusCode == 200 && body['success'] == true) {
-      return body['data'] ?? {};
+      if (body['data'] is List) {
+        return {'transactions': body['data']};
+      } else if (body['data'] is Map<String, dynamic>) {
+        return body['data'];
+      }
+      return {'transactions': []};
     }
     throw Exception(body['message'] ?? 'Gagal mengambil mutasi dompet');
   }

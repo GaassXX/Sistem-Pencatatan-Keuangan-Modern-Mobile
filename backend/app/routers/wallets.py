@@ -1,17 +1,25 @@
 from datetime import date
 from decimal import Decimal
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.models import Wallet, WalletTransfer, Income, Expense, Category, User
 from app.schemas.schemas import (
-    WalletCreate, WalletUpdate, WalletTransferRequest, WalletAdjustRequest
+    WalletCreate, WalletUpdate, WalletTransferRequest, WalletAdjustRequest, WalletArchiveRequest
 )
 
 router = APIRouter(prefix="/api/wallets", tags=["Wallets"])
+
+def to_utc_iso(dt):
+    if not dt:
+        return None
+    s = dt.isoformat()
+    if not s.endswith("Z") and "+" not in s:
+        return s + "Z"
+    return s
 
 def calculate_wallet_balance(db: Session, wallet: Wallet) -> Decimal:
     inc_sum = db.query(func.coalesce(func.sum(Income.amount), 0))\
@@ -42,7 +50,7 @@ def get_wallets(
     wallets = query.order_by(Wallet.is_archived.asc(), Wallet.id.asc()).all()
 
     wallet_list = []
-    total_balance = 0.0
+    total_balance = Decimal("0.0")
 
     type_labels = {
         "cash": "Uang Tunai (Cash)",
@@ -62,7 +70,7 @@ def get_wallets(
             "type": w.type,
             "type_label": type_labels.get(w.type, w.type.capitalize()),
             "initial_balance": float(w.initial_balance or 0.0),
-            "current_balance": bal,
+            "current_balance": float(bal),
             "color": w.color or "#10B981",
             "icon": w.icon or "cash",
             "is_archived": bool(w.is_archived),
@@ -72,12 +80,12 @@ def get_wallets(
     return {
         "success": True,
         "data": {
-            "total_balance": total_balance,
+            "total_balance": float(total_balance),
             "wallets": wallet_list
         }
     }
 
-@router.post("")
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_wallet(
     req: WalletCreate,
     current_user: User = Depends(get_current_user),
@@ -129,7 +137,7 @@ def get_wallet_detail(
             "name": wallet.name,
             "type": wallet.type,
             "initial_balance": float(wallet.initial_balance or 0.0),
-            "current_balance": bal,
+            "current_balance": float(bal),
             "color": wallet.color,
             "icon": wallet.icon,
             "is_archived": wallet.is_archived,
@@ -169,21 +177,47 @@ def update_wallet(
             "id": wallet.id,
             "name": wallet.name,
             "type": wallet.type,
-            "current_balance": calculate_wallet_balance(db, wallet)
+            "current_balance": float(calculate_wallet_balance(db, wallet))
         }
     }
 
 @router.post("/{id}/archive")
 def archive_wallet(
     id: int,
+    req: Optional[WalletArchiveRequest] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    wallet = db.query(Wallet).filter(Wallet.id == id, Wallet.user_id == current_user.id).first()
+    wallet = db.query(Wallet).filter(Wallet.id == id, Wallet.user_id == current_user.id).with_for_update().first()
     if not wallet:
         raise HTTPException(status_code=404, detail="Dompet tidak ditemukan")
     
-    wallet.is_archived = not wallet.is_archived
+    will_be_archived = not wallet.is_archived
+    if will_be_archived and req and req.transfer_to_wallet_id:
+        if req.transfer_to_wallet_id == wallet.id:
+            raise HTTPException(status_code=422, detail="Dompet tujuan transfer tidak boleh sama dengan dompet yang diarsip")
+        
+        dest_wallet = db.query(Wallet).filter(
+            Wallet.id == req.transfer_to_wallet_id,
+            Wallet.user_id == current_user.id,
+            Wallet.is_archived == False
+        ).with_for_update().first()
+        if not dest_wallet:
+            raise HTTPException(status_code=404, detail="Dompet tujuan transfer tidak ditemukan atau sudah diarsipkan")
+        
+        bal = calculate_wallet_balance(db, wallet)
+        if bal > 0:
+            transfer = WalletTransfer(
+                user_id=current_user.id,
+                from_wallet_id=wallet.id,
+                to_wallet_id=dest_wallet.id,
+                amount=float(bal),
+                notes=f"Transfer otomatis penutupan dompet {wallet.name}",
+                date=date.today()
+            )
+            db.add(transfer)
+
+    wallet.is_archived = will_be_archived
     db.commit()
 
     msg = "Dompet berhasil diarsipkan" if wallet.is_archived else "Dompet berhasil dipulihkan"
@@ -193,7 +227,7 @@ def archive_wallet(
         "data": {"is_archived": wallet.is_archived}
     }
 
-@router.post("/transfer")
+@router.post("/transfer", status_code=status.HTTP_201_CREATED)
 def transfer_wallet(
     req: WalletTransferRequest,
     current_user: User = Depends(get_current_user),
@@ -369,6 +403,7 @@ def get_wallet_transactions(
             "category": i.category.name if i.category else "-",
             "wallet_name": wallet.name,
             "date": i.date.isoformat() if i.date else None,
+            "created_at": to_utc_iso(i.created_at),
             "status": i.status
         })
     for e in expenses:
@@ -380,6 +415,7 @@ def get_wallet_transactions(
             "category": e.category.name if e.category else "-",
             "wallet_name": wallet.name,
             "date": e.date.isoformat() if e.date else None,
+            "created_at": to_utc_iso(e.created_at),
             "status": e.status
         })
     for to in transfers_out:
@@ -387,12 +423,13 @@ def get_wallet_transactions(
         to_name = to_wallet.name if to_wallet else "Dompet Lain"
         txs.append({
             "id": f"trf-out-{to.id}",
-            "type": "expense",
+            "type": "transfer_out",
             "amount": float(to.amount),
             "description": f"Transfer ke {to_name}" + (f": {to.notes}" if to.notes else ""),
             "category": "Transfer",
             "wallet_name": wallet.name,
             "date": to.date.isoformat() if to.date else None,
+            "created_at": to_utc_iso(to.created_at),
             "status": "approved"
         })
     for ti in transfers_in:
@@ -400,18 +437,21 @@ def get_wallet_transactions(
         from_name = from_wallet.name if from_wallet else "Dompet Lain"
         txs.append({
             "id": f"trf-in-{ti.id}",
-            "type": "income",
+            "type": "transfer_in",
             "amount": float(ti.amount),
             "description": f"Transfer masuk dari {from_name}" + (f": {ti.notes}" if ti.notes else ""),
             "category": "Transfer",
             "wallet_name": wallet.name,
             "date": ti.date.isoformat() if ti.date else None,
+            "created_at": to_utc_iso(ti.created_at),
             "status": "approved"
         })
 
-    txs.sort(key=lambda x: x["date"] or "", reverse=True)
+    txs.sort(key=lambda x: (x.get("date") or "", x.get("created_at") or ""), reverse=True)
 
     return {
         "success": True,
-        "data": txs
+        "data": {
+            "transactions": txs
+        }
     }

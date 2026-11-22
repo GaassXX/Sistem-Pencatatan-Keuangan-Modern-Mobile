@@ -688,10 +688,65 @@ class _WalletsPageState extends State<WalletsPage> with SingleTickerProviderStat
                           }
                         } catch (e) {
                           setState(() => _loading = false);
+                          final errStr = e.toString().replaceFirst('Exception: ', '');
+                          if (errStr.contains('Saldo tidak cukup') && mounted) {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (dCtx) => AlertDialog(
+                                title: const Text('Saldo Tidak Cukup'),
+                                content: Text('$errStr\n\nApakah Anda ingin tetap melanjutkan transfer dan membiarkan saldo dompet menjadi negatif (minus)?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(dCtx, false),
+                                    child: const Text('Batal'),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF59E0B)),
+                                    onPressed: () => Navigator.pop(dCtx, true),
+                                    child: const Text('Ya, Izinkan Minus', style: TextStyle(color: Colors.white)),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              setState(() => _loading = true);
+                              try {
+                                final res = await ApiService.transferWallet(
+                                  fromWalletId: fromId,
+                                  toWalletId: toId,
+                                  amount: amt,
+                                  adminFee: fee,
+                                  allowNegative: true,
+                                  notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
+                                );
+                                await _loadWallets();
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(res['message'] ?? 'Transfer dengan saldo minus berhasil'),
+                                      backgroundColor: const Color(0xFFF59E0B),
+                                    ),
+                                  );
+                                }
+                              } catch (err2) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(err2.toString().replaceFirst('Exception: ', '')),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              } finally {
+                                if (mounted) setState(() => _loading = false);
+                              }
+                              return;
+                            }
+                          }
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(e.toString().replaceFirst('Exception: ', '')),
+                                content: Text(errStr),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -897,6 +952,45 @@ class _WalletsPageState extends State<WalletsPage> with SingleTickerProviderStat
     );
   }
 
+  String _formatMutationDateTime(dynamic createdAt, dynamic date) {
+    if (createdAt != null && createdAt.toString().trim().isNotEmpty) {
+      String s = createdAt.toString().trim();
+      if (!s.endsWith('Z') && !s.contains('+') && !RegExp(r'-\d{2}:\d{2}$').hasMatch(s)) {
+        s += 'Z';
+      }
+      final dt = DateTime.tryParse(s)?.toLocal();
+      if (dt != null) {
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final itemDate = DateTime(dt.year, dt.month, dt.day);
+        final timeStr = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+        
+        if (today == itemDate) {
+          return 'Hari ini, $timeStr';
+        } else if (today.difference(itemDate).inDays == 1) {
+          return 'Kemarin, $timeStr';
+        } else {
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+          return '${dt.day} ${months[dt.month - 1]} ${dt.year}, $timeStr';
+        }
+      }
+    }
+
+    if (date != null && date.toString().trim().isNotEmpty) {
+      String raw = date.toString().trim();
+      if (raw.contains('T')) {
+        raw = raw.split('T').first;
+      }
+      final dt = DateTime.tryParse(raw);
+      if (dt != null) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
+      }
+    }
+
+    return '-';
+  }
+
   // ── Mutasi Dompet (FR-111) ────────────────────────────
   void _showMutationsDialog(Wallet wallet) async {
     showModalBottomSheet(
@@ -907,56 +1001,102 @@ class _WalletsPageState extends State<WalletsPage> with SingleTickerProviderStat
         future: ApiService.getWalletTransactions(wallet.id),
         builder: (ctx, snapshot) {
           return Container(
-            height: MediaQuery.of(ctx).size.height * 0.75,
+            height: MediaQuery.of(ctx).size.height * 0.78,
             decoration: BoxDecoration(
               color: cardBg,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, -4),
+                ),
+              ],
             ),
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Center(
                   child: Container(
-                    width: 40,
-                    height: 4,
+                    width: 44,
+                    height: 5,
                     decoration: BoxDecoration(
                       color: isDarkMode ? AppColors.borderDark : Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Mutasi: ${wallet.name}',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textColor),
-                        ),
-                        Text(
-                          'Saldo: ${formatRupiah(wallet.currentBalance)}',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: wallet.parsedColor),
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Mutasi: ${wallet.name}',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: textColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: wallet.parsedColor.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Saldo Saat Ini: ${formatRupiah(wallet.currentBalance)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: wallet.parsedColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     IconButton(
                       icon: Icon(Icons.close_rounded, color: textColor),
+                      style: IconButton.styleFrom(
+                        backgroundColor: isDarkMode ? AppColors.surfaceDarkHigh : Colors.grey.shade100,
+                      ),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
                 ),
-                Divider(color: borderColor),
+                const SizedBox(height: 12),
+                Divider(color: borderColor, height: 1),
+                const SizedBox(height: 12),
                 if (snapshot.connectionState == ConnectionState.waiting)
                   const Expanded(
                     child: Center(child: CircularProgressIndicator()),
                   )
                 else if (snapshot.hasError)
                   Expanded(
-                    child: Center(child: Text('Gagal memuat mutasi: ${snapshot.error}', style: TextStyle(color: textColor))),
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          'Gagal memuat mutasi: ${snapshot.error}',
+                          style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
                   )
                 else ...[
                   Builder(builder: (ctx) {
@@ -967,11 +1107,25 @@ class _WalletsPageState extends State<WalletsPage> with SingleTickerProviderStat
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.receipt_long_outlined, size: 48, color: subtextColor),
-                              const SizedBox(height: 10),
+                              Container(
+                                width: 70,
+                                height: 70,
+                                decoration: BoxDecoration(
+                                  color: isDarkMode ? AppColors.surfaceDarkHigh : Colors.grey.shade100,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.receipt_long_outlined, size: 36, color: subtextColor),
+                              ),
+                              const SizedBox(height: 14),
                               Text(
-                                'Belum ada mutasi di dompet ini',
-                                style: TextStyle(fontSize: 13, color: subtextColor),
+                                'Belum Ada Mutasi',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: textColor),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Semua transaksi dari dompet ini akan tercatat di sini',
+                                style: TextStyle(fontSize: 12, color: subtextColor),
+                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),
@@ -982,55 +1136,103 @@ class _WalletsPageState extends State<WalletsPage> with SingleTickerProviderStat
                     return Expanded(
                       child: ListView.separated(
                         itemCount: txs.length,
-                        separatorBuilder: (_, __) => Divider(height: 1, color: borderColor),
+                        physics: const BouncingScrollPhysics(),
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (ctx, idx) {
                           final tx = txs[idx];
                           final type = tx['type']?.toString() ?? '';
                           final isIncome = type == 'income' || type == 'transfer_in';
                           final amt = (tx['amount'] is num) ? (tx['amount'] as num).toDouble() : 0.0;
+                          final formattedDate = _formatMutationDateTime(tx['created_at'], tx['date']);
 
-                          IconData icon = Icons.arrow_downward_rounded;
+                          IconData icon = Icons.arrow_upward_rounded;
                           Color color = const Color(0xFFEF4444);
 
                           if (type == 'income') {
-                            icon = Icons.arrow_upward_rounded;
+                            icon = Icons.arrow_downward_rounded;
                             color = const Color(0xFF10B981);
                           } else if (type == 'transfer_in') {
-                            icon = Icons.compare_arrows_rounded;
+                            icon = Icons.swap_horiz_rounded;
                             color = const Color(0xFF3B82F6);
                           } else if (type == 'transfer_out') {
-                            icon = Icons.compare_arrows_rounded;
+                            icon = Icons.swap_horiz_rounded;
                             color = const Color(0xFFF59E0B);
                           }
 
-                          return ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: color.withOpacity(0.12),
-                                shape: BoxShape.circle,
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isDarkMode ? AppColors.surfaceDarkHigh : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isDarkMode ? AppColors.borderDark : const Color(0xFFE2E8F0),
+                                width: 0.8,
                               ),
-                              child: Icon(icon, color: color, size: 20),
                             ),
-                            title: Text(
-                              tx['description']?.toString() ?? '-',
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textColor),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              '${tx['category'] ?? '-'} • ${tx['date']?.toString().split(' ').first ?? ''}',
-                              style: TextStyle(fontSize: 11, color: subtextColor),
-                            ),
-                            trailing: Text(
-                              '${isIncome ? '+' : '-'}${formatRupiah(amt)}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: isIncome ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                              ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: color.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(icon, color: color, size: 20),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        tx['description']?.toString() ?? '-',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: textColor,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: isDarkMode ? Colors.black26 : const Color(0xFFE2E8F0),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              tx['category']?.toString() ?? '-',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                                color: subtextColor,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            formattedDate,
+                                            style: TextStyle(fontSize: 11, color: subtextColor),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${isIncome ? '+' : '-'}${formatRupiah(amt)}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: isIncome ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         },

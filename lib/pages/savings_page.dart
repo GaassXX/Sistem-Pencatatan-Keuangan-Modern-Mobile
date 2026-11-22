@@ -577,10 +577,11 @@ class _SavingsPageState extends State<SavingsPage> with SingleTickerProviderStat
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModal) {
           if (loadingDeposits) {
-            ApiService.getSavingDeposits(s['id'] as int).then((data) {
+            final savingId = (s['id'] is num) ? (s['id'] as num).toInt() : (int.tryParse(s['id']?.toString() ?? '') ?? 0);
+            ApiService.getSavingDeposits(savingId).then((data) {
               setModal(() { deposits = data; loadingDeposits = false; });
             }).catchError((e) {
-              setModal(() { errorMsg = e.toString(); loadingDeposits = false; });
+              setModal(() { errorMsg = e.toString().replaceFirst('Exception: ', ''); loadingDeposits = false; });
             });
           }
 

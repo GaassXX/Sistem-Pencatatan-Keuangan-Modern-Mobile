@@ -74,6 +74,8 @@ class Category(Base):
     icon = Column(String(50), nullable=True)
     color = Column(String(30), nullable=True)
     is_active = Column(Boolean, default=True)
+    is_neutral = Column(Boolean, default=False)
+    created_by = Column(Integer, nullable=True, default=1) # Kompatibilitas dengan skema Laravel
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

@@ -5,6 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import Base, engine, SessionLocal
@@ -18,13 +19,63 @@ from app.routers import (
 try:
     if engine.dialect.name == "sqlite":
         Base.metadata.create_all(bind=engine)
+        # Auto-migration jika tabel sqlite sudah ada sebelumnya
+        with engine.connect() as conn:
+            try:
+                conn.execute(text("ALTER TABLE categories ADD COLUMN is_neutral BOOLEAN DEFAULT 0"))
+                conn.commit()
+            except Exception:
+                pass
     else:
-        # Untuk MySQL / MariaDB yang berbagi dengan Laravel:
-        # Hanya buat tabel jika skema belum ada agar tidak merusak tabel migration Laravel
-        from sqlalchemy import inspect
-        inspector = inspect(engine)
-        if not inspector.has_table("users"):
-            Base.metadata.create_all(bind=engine)
+        # Untuk MySQL / MariaDB (Docker / Laravel):
+        # Jalankan DDL migration terlebih dahulu agar kolom baru ada sebelum tabel diakses
+        with engine.connect() as conn:
+            ddls = [
+                "ALTER TABLE categories ADD COLUMN icon VARCHAR(50) NULL",
+                "ALTER TABLE categories ADD COLUMN color VARCHAR(30) NULL",
+                "ALTER TABLE categories ADD COLUMN is_neutral BOOLEAN DEFAULT 0",
+                "ALTER TABLE categories MODIFY COLUMN created_by INT NULL",
+                "ALTER TABLE users ADD COLUMN avatar_url VARCHAR(255) NULL",
+                "ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT 1",
+                "ALTER TABLE users ADD COLUMN is_independent BOOLEAN DEFAULT 1",
+                """CREATE TABLE IF NOT EXISTS saving_deposits (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    saving_id INT NOT NULL,
+                    user_id INT NOT NULL,
+                    wallet_id INT NULL,
+                    amount DECIMAL(15, 2) NOT NULL,
+                    date DATE NULL,
+                    note TEXT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    INDEX idx_saving_id (saving_id),
+                    INDEX idx_user_id (user_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""",
+                """CREATE TABLE IF NOT EXISTS wallet_transfers (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    from_wallet_id INT NOT NULL,
+                    to_wallet_id INT NOT NULL,
+                    amount DECIMAL(15, 2) NOT NULL,
+                    notes TEXT NULL,
+                    date DATE NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    INDEX idx_wt_user (user_id),
+                    INDEX idx_wt_from (from_wallet_id),
+                    INDEX idx_wt_to (to_wallet_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"""
+            ]
+            for ddl in ddls:
+                try:
+                    conn.execute(text(ddl))
+                    conn.commit()
+                except Exception:
+                    pass
+
+        # Buat tabel yang belum ada secara aman (tidak akan menimpa tabel lama)
+        Base.metadata.create_all(bind=engine)
+
     db = SessionLocal()
     seed_categories_if_empty(db)
     db.close()
@@ -34,7 +85,7 @@ except Exception as e:
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Backend REST API untuk Aplikasi Mobile FinChat (Laporan Keuangan Berbasis AI)",
+    description="Backend REST API untuk Aplikasi Mobile FinChat (Sistem Pencatatan Keuangan Modern)",
     docs_url="/docs",
     redoc_url="/redoc"
 )

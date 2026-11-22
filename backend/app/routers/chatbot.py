@@ -7,7 +7,7 @@ from app.core.security import get_current_user
 from app.models.models import Income, Expense, Category, Wallet, User
 from app.schemas.schemas import ChatBotRequest
 
-router = APIRouter(prefix="/api/chat-bot", tags=["AI ChatBot"])
+router = APIRouter(prefix="/api/chat-bot", tags=["ChatBot (Rule-Based Parser)"])
 
 def extract_amount(text: str) -> float:
     # 50k, 50rb, 20.000, 20000
@@ -140,7 +140,7 @@ def parse_and_save_chatbot_message(
 
     return {
         "success": True,
-        "message": f"Berhasil mencatat {type_label} sebesar Rp {amount:,.0f} ({cat_label}) via AI ChatBot",
+        "message": f"Berhasil mencatat {type_label} sebesar Rp {amount:,.0f} ({cat_label}) via ChatBot",
         "data": {
             "id": tx_id,
             "type": t_type,

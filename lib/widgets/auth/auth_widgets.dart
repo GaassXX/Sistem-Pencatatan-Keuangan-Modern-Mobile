@@ -26,21 +26,30 @@ class FinChatBrandLogo extends StatelessWidget {
       width: iconSize,
       height: iconSize,
       decoration: BoxDecoration(
-        color: const Color(0xFF5B4DFF), // Ungu FinChat
-        borderRadius: BorderRadius.circular(iconSize * 0.32),
+        borderRadius: BorderRadius.circular(iconSize * 0.28),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF5B4DFF).withOpacity(0.35),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
+            color: const Color(0xFF7417F6).withOpacity(0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Center(
-        child: Icon(
-          Icons.chat_bubble_rounded,
-          color: Colors.white,
-          size: iconSize * 0.52,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(iconSize * 0.28),
+        child: Image.asset(
+          'assets/icon/app_logo.png',
+          width: iconSize,
+          height: iconSize,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            color: const Color(0xFF7417F6),
+            child: Icon(
+              Icons.chat_bubble_rounded,
+              color: Colors.white,
+              size: iconSize * 0.52,
+            ),
+          ),
         ),
       ),
     );

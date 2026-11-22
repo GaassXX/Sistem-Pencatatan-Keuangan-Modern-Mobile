@@ -1,10 +1,11 @@
 from datetime import date
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func as sqlfunc
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.models import Debt, Expense, Income, Wallet, User
+from app.models.models import Debt, Expense, Income, Wallet, Category, User
 from app.schemas.schemas import DebtCreate, DebtUpdate, DebtPayRequest
 
 router = APIRouter(prefix="/api/debts", tags=["Debts & Receivables"])
@@ -87,7 +88,7 @@ def get_debts(
         "data": data
     }
 
-@router.post("")
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_debt(
     req: DebtCreate,
     current_user: User = Depends(get_current_user),
@@ -182,33 +183,79 @@ def delete_debt(
         "message": "Data berhasil dihapus"
     }
 
-@router.post("/{id}/pay")
+@router.post("/{id}/pay", status_code=status.HTTP_201_CREATED)
 def pay_debt_installment(
     id: int,
     req: DebtPayRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    debt = db.query(Debt).filter(Debt.id == id, Debt.user_id == current_user.id).first()
+    debt = db.query(Debt).filter(
+        Debt.id == id, Debt.user_id == current_user.id
+    ).with_for_update().first()
     if not debt:
         raise HTTPException(status_code=404, detail="Data hutang/piutang tidak ditemukan")
+    if debt.status == "paid":
+        raise HTTPException(status_code=422, detail=f"{'Hutang' if debt.type == 'debt' else 'Piutang'} ini sudah lunas")
     if req.amount <= 0:
         raise HTTPException(status_code=422, detail="Nominal pembayaran harus lebih dari 0")
 
+    # Hitung pembayaran yang telah disetujui sebelumnya
+    if debt.type == "debt":
+        paid_so_far = db.query(sqlfunc.coalesce(sqlfunc.sum(Expense.amount), 0.0)).filter(
+            Expense.debt_id == debt.id, Expense.status == "approved"
+        ).scalar()
+    else:
+        paid_so_far = db.query(sqlfunc.coalesce(sqlfunc.sum(Income.amount), 0.0)).filter(
+            Income.debt_id == debt.id, Income.status == "approved"
+        ).scalar()
+
+    total_amount = float(debt.amount or 0.0)
+    remaining = max(0.0, total_amount - float(paid_so_far or 0.0))
+
+    if remaining <= 0:
+        debt.status = "paid"
+        db.commit()
+        raise HTTPException(status_code=422, detail=f"{'Hutang' if debt.type == 'debt' else 'Piutang'} ini sudah lunas")
+
+    if req.amount > remaining:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Nominal pembayaran (Rp {req.amount:,.0f}) melebihi sisa yang harus dibayar (Rp {remaining:,.0f})"
+        )
+
     wallet = None
     if req.wallet_id:
-        wallet = db.query(Wallet).filter(Wallet.id == req.wallet_id, Wallet.user_id == current_user.id).first()
-    if not wallet:
-        wallet = db.query(Wallet).filter(Wallet.user_id == current_user.id, Wallet.is_archived == False).first()
+        wallet = db.query(Wallet).filter(
+            Wallet.id == req.wallet_id, Wallet.user_id == current_user.id
+        ).with_for_update().first()
+        if not wallet:
+            raise HTTPException(status_code=404, detail="Dompet tidak ditemukan atau bukan milik Anda")
+    else:
+        wallet = db.query(Wallet).filter(
+            Wallet.user_id == current_user.id, Wallet.is_archived == False
+        ).with_for_update().first()
+
+    if wallet and wallet.is_archived:
+        raise HTTPException(status_code=422, detail=f"Dompet '{wallet.name}' telah diarsipkan")
 
     pay_date = req.date or date.today()
     desc = req.note or f"Cicilan {debt.type} ke {debt.person_name}"
 
+    # Gunakan kategori netral sistem agar tidak merusak statistik pengeluaran operasional
+    cat_name = "Pembayaran Hutang" if debt.type == "debt" else "Penerimaan Piutang"
+    cat_type = "expense" if debt.type == "debt" else "income"
+    sys_cat = db.query(Category).filter(Category.name == cat_name).first()
+    if not sys_cat:
+        sys_cat = Category(name=cat_name, type=cat_type, icon="account_balance", color="#6366F1", is_neutral=True)
+        db.add(sys_cat)
+        db.flush()
+
     if debt.type == "debt":
-        # Bayar hutang = pengeluaran kas
         rec = Expense(
             user_id=current_user.id,
             debt_id=debt.id,
+            category_id=sys_cat.id,
             wallet_id=wallet.id if wallet else None,
             amount=req.amount,
             source=wallet.type if wallet else "cash",
@@ -218,10 +265,10 @@ def pay_debt_installment(
         )
         db.add(rec)
     else:
-        # Terima piutang = pemasukan kas
         rec = Income(
             user_id=current_user.id,
             debt_id=debt.id,
+            category_id=sys_cat.id,
             wallet_id=wallet.id if wallet else None,
             amount=req.amount,
             source=wallet.type if wallet else "cash",
@@ -231,24 +278,11 @@ def pay_debt_installment(
         )
         db.add(rec)
 
-    # Cek apakah lunas sebelum commit pertama (dalam 1 transaksi DB)
-    paid_so_far = 0.0
-    if debt.type == "debt":
-        from sqlalchemy import func as sqlfunc
-        paid_so_far = db.query(sqlfunc.sum(Expense.amount)).filter(
-            Expense.debt_id == debt.id, Expense.status == "approved"
-        ).scalar() or 0.0
-    else:
-        from sqlalchemy import func as sqlfunc
-        paid_so_far = db.query(sqlfunc.sum(Income.amount)).filter(
-            Income.debt_id == debt.id, Income.status == "approved"
-        ).scalar() or 0.0
-
-    new_paid = float(paid_so_far) + req.amount
-    if new_paid >= float(debt.amount or 0):
+    new_paid = float(paid_so_far or 0.0) + req.amount
+    if new_paid >= total_amount:
         debt.status = "paid"
 
-    # Satu commit untuk semua perubahan (atomic)
+    # Satu transaksi atomik
     db.commit()
     db.refresh(debt)
 

@@ -28,7 +28,7 @@ def serialize_user(user: User) -> dict:
         "created_at": user.created_at.isoformat() if user.created_at else None
     }
 
-@router.post("/register")
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
     if req.password_confirmation and req.password != req.password_confirmation:
         raise HTTPException(status_code=422, detail="Konfirmasi password tidak cocok")

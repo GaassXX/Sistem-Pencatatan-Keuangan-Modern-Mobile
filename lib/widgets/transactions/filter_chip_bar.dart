@@ -18,8 +18,8 @@ class TxFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final selectedBg = const Color(0xFF4F46E5);
-    final selectedText = Colors.white;
+    const selectedBg = Color(0xFF4F46E5);
+    const selectedText = Colors.white;
     final unselectedBg = Theme.of(context).colorScheme.surface;
     final unselectedText = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);

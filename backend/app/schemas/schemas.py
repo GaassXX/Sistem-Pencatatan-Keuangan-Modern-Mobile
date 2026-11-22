@@ -73,6 +73,9 @@ class WalletAdjustRequest(BaseModel):
     new_balance: float
     notes: Optional[str] = None
 
+class WalletArchiveRequest(BaseModel):
+    transfer_to_wallet_id: Optional[int] = None
+
 
 # ----------------- Transactions -----------------
 class TransactionCreate(BaseModel):

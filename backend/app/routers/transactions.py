@@ -1,6 +1,6 @@
 from datetime import date
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -8,6 +8,14 @@ from app.models.models import Income, Expense, Category, Wallet, Debt, User
 from app.schemas.schemas import TransactionCreate, TransactionUpdate
 
 router = APIRouter(prefix="/api/transactions", tags=["Transactions"])
+
+def to_utc_iso(dt):
+    if not dt:
+        return None
+    s = dt.isoformat()
+    if not s.endswith("Z") and "+" not in s:
+        return s + "Z"
+    return s
 
 def parse_tx_id(raw_id: str):
     if raw_id.startswith("inc-"):
@@ -71,7 +79,7 @@ def get_transactions(
                 "date": i.date.isoformat() if i.date else None,
                 "status": i.status,
                 "debt_id": i.debt_id,
-                "created_at": i.created_at.isoformat() if i.created_at else None
+                "created_at": to_utc_iso(i.created_at)
             })
 
     if type != "income":
@@ -93,7 +101,7 @@ def get_transactions(
                 "date": e.date.isoformat() if e.date else None,
                 "status": e.status,
                 "debt_id": e.debt_id,
-                "created_at": e.created_at.isoformat() if e.created_at else None
+                "created_at": to_utc_iso(e.created_at)
             })
 
     # Urutkan tanggal terbaru
@@ -104,7 +112,7 @@ def get_transactions(
         "data": items
     }
 
-@router.post("")
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_transaction(
     req: TransactionCreate,
     current_user: User = Depends(get_current_user),
@@ -113,7 +121,7 @@ def create_transaction(
     if req.amount <= 0:
         raise HTTPException(status_code=422, detail="Jumlah transaksi harus lebih dari 0")
     
-    # Validasi kepemilikan wallet (Cegah IDOR)
+    # Validasi kepemilikan wallet (Cegah IDOR & tolak dompet arsip)
     wallet = None
     if req.wallet_id:
         wallet = db.query(Wallet).filter(Wallet.id == req.wallet_id, Wallet.user_id == current_user.id).first()
@@ -127,11 +135,22 @@ def create_transaction(
             db.commit()
             db.refresh(wallet)
 
-    # Validasi kategori
+    if wallet.is_archived:
+        raise HTTPException(
+            status_code=422, 
+            detail=f"Dompet '{wallet.name}' telah diarsipkan dan tidak dapat digunakan untuk transaksi baru"
+        )
+
+    # Validasi kategori & kecocokan tipe transaksi (Pemasukan vs Pengeluaran)
     if req.category_id:
         category = db.query(Category).filter(Category.id == req.category_id).first()
         if not category:
             raise HTTPException(status_code=404, detail="Kategori tidak ditemukan")
+        if category.type != req.type:
+            raise HTTPException(
+                status_code=422, 
+                detail=f"Kategori '{category.name}' (tipe: {category.type}) tidak cocok dengan transaksi bertipe {req.type}"
+            )
 
     # Validasi kepemilikan debt
     if req.debt_id:
@@ -217,7 +236,7 @@ def get_transaction_detail(
                 "wallet_name": item.wallet.name if item.wallet else "Dompet",
                 "date": item.date.isoformat() if item.date else None,
                 "status": item.status,
-                "created_at": item.created_at.isoformat() if item.created_at else None
+                "created_at": to_utc_iso(item.created_at)
             }
         }
     else:
@@ -237,7 +256,7 @@ def get_transaction_detail(
                 "wallet_name": item.wallet.name if item.wallet else "Dompet",
                 "date": item.date.isoformat() if item.date else None,
                 "status": item.status,
-                "created_at": item.created_at.isoformat() if item.created_at else None
+                "created_at": to_utc_iso(item.created_at)
             }
         }
 
@@ -262,12 +281,20 @@ def update_transaction(
         wallet = db.query(Wallet).filter(Wallet.id == req.wallet_id, Wallet.user_id == current_user.id).first()
         if not wallet:
             raise HTTPException(status_code=404, detail="Dompet tidak ditemukan atau bukan milik Anda")
+        if wallet.is_archived:
+            raise HTTPException(status_code=422, detail=f"Dompet '{wallet.name}' telah diarsipkan dan tidak dapat digunakan")
         item.wallet_id = req.wallet_id
 
     if req.category_id is not None:
         category = db.query(Category).filter(Category.id == req.category_id).first()
         if not category:
             raise HTTPException(status_code=404, detail="Kategori tidak ditemukan")
+        tx_type = "income" if t_type == "income" else "expense"
+        if category.type != tx_type:
+            raise HTTPException(
+                status_code=422, 
+                detail=f"Kategori '{category.name}' (tipe: {category.type}) tidak cocok dengan transaksi bertipe {tx_type}"
+            )
         item.category_id = req.category_id
 
     if req.amount is not None:

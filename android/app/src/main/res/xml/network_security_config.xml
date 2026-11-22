@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Network Security Config — FinChat
+    HTTP cleartext HANYA diizinkan ke localhost (pengembangan lokal).
+    Semua domain lain wajib HTTPS.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Backend dev lokal via adb reverse tcp:8000 tcp:8000 -->
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <!-- Emulator Android mengakses host melalui IP khusus ini -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+
+    <!-- Semua domain lain: hanya HTTPS, certificate pinning opsional untuk produksi -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
